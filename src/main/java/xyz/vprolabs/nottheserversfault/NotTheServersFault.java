@@ -22,6 +22,7 @@ public final class NotTheServersFault extends JavaPlugin {
     private AdminManager adminManager;
     private FakePlayerManager fakePlayerManager;
     private WorldResetManager worldResetManager;
+    private ChunkyManager chunkyManager;
 
     @Override
     public void onLoad() {
@@ -50,6 +51,7 @@ public final class NotTheServersFault extends JavaPlugin {
         this.twistManager = new TwistManager(this);
         this.twistManager.load();
 
+        this.chunkyManager = new ChunkyManager(this);
         this.lobbyManager = new LobbyManager(this);
         this.graceManager = new GraceManager(this, twistManager);
         this.herobrineManager = new HerobrineManager(this, twistManager);
@@ -74,6 +76,8 @@ public final class NotTheServersFault extends JavaPlugin {
         var pm = getServer().getPluginManager();
         pm.registerEvents(new PlayerJoinListener(this, lobbyManager, twistManager), this);
         pm.registerEvents(new PlayerStateListener(this, lobbyManager, twistManager), this);
+        pm.registerEvents(new ChatBlockListener(lobbyManager), this);
+        pm.registerEvents(new DiamondSwapListener(twistManager), this);
         pm.registerEvents(new ChatBlockListener(lobbyManager), this);
         pm.registerEvents(new DiamondSwapListener(twistManager), this);
         pm.registerEvents(new ChestLootListener(twistManager), this);
@@ -142,4 +146,5 @@ public final class NotTheServersFault extends JavaPlugin {
     public AmbienceManager getAmbienceManager() { return ambienceManager; }
     public FakePlayerManager getFakePlayerManager() { return fakePlayerManager; }
     public WorldResetManager getWorldResetManager() { return worldResetManager; }
+    public ChunkyManager getChunkyManager() { return chunkyManager; }
 }

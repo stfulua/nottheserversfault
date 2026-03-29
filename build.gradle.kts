@@ -28,6 +28,7 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     compileOnly("com.github.retrooper:packetevents-spigot:2.11.2")
+    compileOnly("org.popcraft:chunky-common:1.4.10")
 }
 
 tasks {

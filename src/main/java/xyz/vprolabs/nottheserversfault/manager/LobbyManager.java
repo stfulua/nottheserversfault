@@ -137,7 +137,11 @@ public class LobbyManager {
                     boolean isExcluded = plugin.getTwistManager().isExcluded(player.getName());
                     Component subtitleText;
                     
-                    if (isExcluded) {
+                    String chunkyProgress = plugin.getChunkyManager().getProgressString();
+                    if (chunkyProgress != null) {
+                        titleText = miniMessage.deserialize("<gradient:red:gold><bold>LOADING TERRAIN...");
+                        subtitleText = miniMessage.deserialize("<white>Progress: <yellow>" + chunkyProgress);
+                    } else if (isExcluded) {
                         subtitleText = miniMessage.deserialize("<white>You are a <gray>Spectator <white>- Waiting for players...");
                     } else if (readyPlayers.contains(player.getUniqueId())) {
                         subtitleText = miniMessage.deserialize("<green>READY! <white>Waiting for others...");
@@ -171,6 +175,11 @@ public class LobbyManager {
     }
 
     public void setReady(@NotNull Player player) {
+        if (plugin.getChunkyManager().isChunkyRunning()) {
+            player.sendMessage(miniMessage.deserialize("<red>Please wait for terrain to finish loading before starting!"));
+            return;
+        }
+
         if (plugin.getTwistManager().isExcluded(player.getName())) {
             player.sendMessage(miniMessage.deserialize("<red>Spectators do not need to ready up!"));
             return;
