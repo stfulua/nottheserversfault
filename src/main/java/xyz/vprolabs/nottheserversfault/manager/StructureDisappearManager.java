@@ -28,23 +28,45 @@ public class StructureDisappearManager implements Listener {
     private final Set<BoundingBox> removedStructures = ConcurrentHashMap.newKeySet();
     private BukkitTask checkTask;
 
-    private static final EnumSet<Material> BUILDING_MATERIALS = EnumSet.of(
-        Material.OAK_LOG, Material.STRIPPED_OAK_LOG, Material.OAK_WOOD, Material.STRIPPED_OAK_WOOD,
-        Material.OAK_PLANKS, Material.OAK_STAIRS, Material.OAK_SLAB, Material.OAK_FENCE, Material.OAK_FENCE_GATE,
-        Material.OAK_DOOR, Material.OAK_TRAPDOOR, Material.OAK_PRESSURE_PLATE, Material.OAK_BUTTON,
-        Material.COBBLESTONE, Material.COBBLESTONE_STAIRS, Material.COBBLESTONE_SLAB, Material.COBBLESTONE_WALL,
-        Material.MOSSY_COBBLESTONE, Material.MOSSY_COBBLESTONE_STAIRS, Material.MOSSY_COBBLESTONE_SLAB, Material.MOSSY_COBBLESTONE_WALL,
-        Material.GLASS, Material.GLASS_PANE, Material.WHITE_WOOL, Material.WHITE_CARPET,
-        Material.CHEST, Material.FURNACE, Material.CRAFTING_TABLE, Material.TORCH, Material.WALL_TORCH,
-        Material.SHORT_GRASS, Material.FERN, Material.POPPY, Material.DANDELION, Material.BLUE_ORCHID, Material.ALLIUM,
-        Material.AZURE_BLUET, Material.RED_TULIP, Material.ORANGE_TULIP, Material.WHITE_TULIP, Material.PINK_TULIP, Material.OXEYE_DAISY,
-        Material.CORNFLOWER, Material.LILY_OF_THE_VALLEY, Material.WITHER_ROSE, Material.SUNFLOWER, Material.LILAC, Material.ROSE_BUSH, Material.PEONY,
-        Material.TERRACOTTA, Material.YELLOW_TERRACOTTA, Material.WHITE_TERRACOTTA, Material.BROWN_TERRACOTTA,
-        Material.WHITE_STAINED_GLASS, Material.WHITE_STAINED_GLASS_PANE,
-        Material.LANTERN, Material.BELL, Material.BARREL, Material.SMOKER, Material.BLAST_FURNACE, Material.CARTOGRAPHY_TABLE,
-        Material.FLETCHING_TABLE, Material.GRINDSTONE, Material.LECTERN, Material.SMITHING_TABLE, Material.STONECUTTER, Material.LOOM,
-        Material.COMPOSTER, Material.CAULDRON, Material.BREWING_STAND, Material.HAY_BLOCK, Material.BOOKSHELF
-    );
+    private static final EnumSet<Material> BUILDING_MATERIALS = EnumSet.noneOf(Material.class);
+
+    static {
+        for (Material mat : Material.values()) {
+            String name = mat.name();
+            // Wood types
+            if (name.contains("LOG") || name.contains("WOOD") || name.contains("PLANKS") || 
+                name.contains("STAIRS") || name.contains("SLAB") || name.contains("FENCE") || 
+                name.contains("DOOR") || name.contains("TRAPDOOR") || name.contains("PRESSURE_PLATE") || 
+                name.contains("BUTTON") || name.contains("SIGN") || name.contains("HANGING_SIGN")) {
+                BUILDING_MATERIALS.add(mat);
+            }
+            // Stone/Brick types
+            if (name.contains("COBBLESTONE") || name.contains("STONE_BRICK") || name.contains("BRICKS") || 
+                name.contains("TERRACOTTA") || name.contains("CONCRETE") || name.contains("WOOL") || 
+                name.contains("CARPET") || name.contains("GLASS") || name.contains("LANTERN") || 
+                name.contains("WALL") || name.contains("CHISELED") || name.contains("POLISHED")) {
+                BUILDING_MATERIALS.add(mat);
+            }
+            // Utility/Furniture
+            if (name.equals("CHEST") || name.equals("FURNACE") || name.equals("CRAFTING_TABLE") || 
+                name.equals("TORCH") || name.equals("WALL_TORCH") || name.equals("BELL") || 
+                name.equals("BARREL") || name.equals("SMOKER") || name.equals("BLAST_FURNACE") || 
+                name.contains("TABLE") || name.contains("GRINDSTONE") || name.equals("LECTERN") || 
+                name.equals("STONECUTTER") || name.equals("LOOM") || name.equals("COMPOSTER") || 
+                name.equals("CAULDRON") || name.equals("BREWING_STAND") || name.equals("HAY_BLOCK") || 
+                name.equals("BOOKSHELF") || name.equals("BED") || name.contains("CANDLE")) {
+                BUILDING_MATERIALS.add(mat);
+            }
+        }
+        // Exclude specific terrain materials that might be caught by broad filters
+        BUILDING_MATERIALS.remove(Material.STONE);
+        BUILDING_MATERIALS.remove(Material.DIRT);
+        BUILDING_MATERIALS.remove(Material.GRASS_BLOCK);
+        BUILDING_MATERIALS.remove(Material.SAND);
+        BUILDING_MATERIALS.remove(Material.GRAVEL);
+        BUILDING_MATERIALS.remove(Material.WATER);
+        BUILDING_MATERIALS.remove(Material.LAVA);
+    }
 
     public StructureDisappearManager(NotTheServersFault plugin, TwistManager twistManager) {
         this.plugin = plugin;
@@ -109,7 +131,6 @@ public class StructureDisappearManager implements Listener {
         org.bukkit.World world = plugin.getServer().getWorlds().get(0);
         int blocksPerTick = 500; // Efficient batch size
 
-        // Re-implementing with a better stateful iterator
         removeInBatches(world, minX, minY, minZ, maxX, maxY, maxZ, blocksPerTick);
     }
 
@@ -128,7 +149,6 @@ public class StructureDisappearManager implements Listener {
                 Block block = world.getBlockAt(x, y, z);
                 Material type = block.getType();
                 
-                // Only remove building materials, NEVER terrain (dirt, grass block, stone)
                 if (BUILDING_MATERIALS.contains(type)) {
                     block.setType(Material.AIR, false);
                 }

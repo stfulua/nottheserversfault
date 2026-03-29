@@ -1,6 +1,7 @@
 package xyz.vprolabs.nottheserversfault.listener;
 
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -82,6 +83,13 @@ public class PlayerStateListener implements Listener {
             // Check if remaining players are all ready
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 lobbyManager.checkStartCondition();
+            }, 1L);
+        } else if (!twistManager.isFinished()) {
+            // If game active, start reset timer if last target leaves
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                if (Bukkit.getOnlinePlayers().stream().noneMatch(TargetUtil::isTarget)) {
+                    plugin.getWorldResetManager().startResetTimer();
+                }
             }, 1L);
         }
     }

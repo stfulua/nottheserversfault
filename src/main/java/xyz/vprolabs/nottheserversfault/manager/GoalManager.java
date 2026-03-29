@@ -114,5 +114,8 @@ public class GoalManager implements Listener {
         plugin.getHerobrineManager().stop();
         plugin.getInventoryShuffleManager().stop();
         plugin.getFakePlayerManager().stop();
+
+        // Start reset timer after goal finished
+        plugin.getWorldResetManager().startResetTimer();
     }
 }

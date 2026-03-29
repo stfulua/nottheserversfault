@@ -21,6 +21,7 @@ public final class NotTheServersFault extends JavaPlugin {
     private AmbienceManager ambienceManager;
     private AdminManager adminManager;
     private FakePlayerManager fakePlayerManager;
+    private WorldResetManager worldResetManager;
 
     @Override
     public void onLoad() {
@@ -58,6 +59,7 @@ public final class NotTheServersFault extends JavaPlugin {
         this.ambienceManager = new AmbienceManager(this, twistManager);
         this.adminManager = new AdminManager(this);
         this.fakePlayerManager = new FakePlayerManager(this, twistManager);
+        this.worldResetManager = new WorldResetManager(this, twistManager);
 
         Optional.ofNullable(getCommand("start")).ifPresentOrElse(
                 cmd -> cmd.setExecutor(new StartCommand(lobbyManager, graceManager, twistManager)),
@@ -70,7 +72,7 @@ public final class NotTheServersFault extends JavaPlugin {
         );
 
         var pm = getServer().getPluginManager();
-        pm.registerEvents(new PlayerJoinListener(lobbyManager, twistManager), this);
+        pm.registerEvents(new PlayerJoinListener(this, lobbyManager, twistManager), this);
         pm.registerEvents(new PlayerStateListener(this, lobbyManager, twistManager), this);
         pm.registerEvents(new ChatBlockListener(lobbyManager), this);
         pm.registerEvents(new DiamondSwapListener(twistManager), this);
@@ -139,4 +141,5 @@ public final class NotTheServersFault extends JavaPlugin {
     public StructureDisappearManager getStructureDisappearManager() { return structureDisappearManager; }
     public AmbienceManager getAmbienceManager() { return ambienceManager; }
     public FakePlayerManager getFakePlayerManager() { return fakePlayerManager; }
+    public WorldResetManager getWorldResetManager() { return worldResetManager; }
 }

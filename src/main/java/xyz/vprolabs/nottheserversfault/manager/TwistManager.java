@@ -21,6 +21,8 @@ public final class TwistManager {
     private final File stateFile;
 
     private List<String> excludedPlayers;
+    private boolean resetEnabled;
+    private int resetDelayMinutes;
 
     public TwistManager(NotTheServersFault plugin) {
         this.plugin = plugin;
@@ -33,6 +35,9 @@ public final class TwistManager {
         this.excludedPlayers = plugin.getConfig().getStringList("settings.excluded-players").stream()
                 .map(String::toLowerCase)
                 .collect(Collectors.toList());
+        
+        this.resetEnabled = plugin.getConfig().getBoolean("world-reset.enabled", true);
+        this.resetDelayMinutes = plugin.getConfig().getInt("world-reset.reset-delay-minutes", 30);
     }
 
     public List<String> getExcludedPlayers() {
@@ -41,6 +46,14 @@ public final class TwistManager {
 
     public boolean isExcluded(String name) {
         return excludedPlayers.contains(name.toLowerCase());
+    }
+
+    public boolean isResetEnabled() {
+        return resetEnabled;
+    }
+
+    public int getResetDelayMinutes() {
+        return resetDelayMinutes;
     }
 
     public void activate() { 

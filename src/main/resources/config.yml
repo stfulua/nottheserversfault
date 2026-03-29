@@ -10,5 +10,13 @@ settings:
   excluded-players:
     - "ExamplePlayer1"
 
+world-reset:
+  # Whether to automatically reset the world.
+  enabled: true
+  
+  # Delay in minutes before resetting the world after everyone leaves or goal is finished.
+  # Default: 30 minutes
+  reset-delay-minutes: 30
+
 # Internal use only
 config-version: 1
