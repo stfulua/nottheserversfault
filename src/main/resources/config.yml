@@ -1,0 +1,14 @@
+# NotTheServersFault - Production Configuration
+# Author: vProLabs (https://vprolabs.xyz)
+# Discord: https://discord.gg/SNzUYWbc5Q
+# Donations: https://ko-fi.com/v4bi
+
+settings:
+  # List of players who are EXCLUDED from being targets.
+  # These players will not experience twists and will have admin access.
+  # Default: ExamplePlayer1 (Replace with your own username if you want to be an admin)
+  excluded-players:
+    - "ExamplePlayer1"
+
+# Internal use only
+config-version: 1

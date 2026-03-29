@@ -1,0 +1,14 @@
+name: NotTheServersFault
+version: 1.0
+main: xyz.vprolabs.nottheserversfault.NotTheServersFault
+api-version: '1.21'
+softdepend: [packetevents, chunky]
+commands:
+  start:
+    description: Start the game
+    usage: /start
+  ntsf:
+    description: Admin commands
+    usage: /ntsf <vanish|herobrine>
+    aliases: [nottheserversfault]
+    permission: ntsf.admin
