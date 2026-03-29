@@ -81,8 +81,13 @@ public final class FakePlayerManager {
         String name = fakeNames.get(ThreadLocalRandom.current().nextInt(fakeNames.size()));
         UUID fakeUuid = UUID.randomUUID();
         
+        // Add to Tab and send Join Message
         addFakeToTab(target, name, fakeUuid);
         activeFakePlayers.put(target.getUniqueId(), fakeUuid);
+        
+        Component joinMsg = miniMessage.deserialize("<yellow>" + name + " joined the game");
+        target.sendMessage(joinMsg);
+        plugin.getLogger().info("[FakePlayer] " + name + " joined the game (Visible to: " + target.getName() + ")");
 
         // Send message after a random delay (10-30s)
         int messageDelay = ThreadLocalRandom.current().nextInt(200, 600);
@@ -90,12 +95,18 @@ public final class FakePlayerManager {
             if (!target.isOnline() || !activeFakePlayers.containsKey(target.getUniqueId())) return;
             
             String msg = messages.get(ThreadLocalRandom.current().nextInt(messages.size()));
-            target.sendMessage(miniMessage.deserialize("<gray><" + name + "> " + msg));
+            // Use white for name and message to match 1.21.x default chat style
+            Component chatMsg = miniMessage.deserialize("<white><" + name + "> " + msg);
+            target.sendMessage(chatMsg);
+            
+            // Log to console so admin can see what happened
+            plugin.getLogger().info("[FakePlayer] <" + name + "> " + msg + " (Sent to: " + target.getName() + ")");
             
             // Remove after another delay (10-15s)
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 removeFakeFromTab(target, fakeUuid);
                 activeFakePlayers.remove(target.getUniqueId());
+                plugin.getLogger().info("[FakePlayer] " + name + " left the game");
             }, 200L + ThreadLocalRandom.current().nextInt(100));
         }, messageDelay);
     }
