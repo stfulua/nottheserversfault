@@ -1,5 +1,7 @@
 package xyz.vprolabs.nottheserversfault.listener;
 
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -15,6 +17,7 @@ public class PlayerJoinListener implements Listener {
     private final NotTheServersFault plugin;
     private final LobbyManager lobbyManager;
     private final TwistManager twistManager;
+    private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     public PlayerJoinListener(NotTheServersFault plugin, LobbyManager lobbyManager, TwistManager twistManager) {
         this.plugin = plugin;
@@ -33,6 +36,16 @@ public class PlayerJoinListener implements Listener {
 
         if (!twistManager.isStarted()) {
             lobbyManager.sendToLobby(player);
+            
+            // Notify about player count
+            int current = (int) Bukkit.getOnlinePlayers().stream().filter(TargetUtil::isTarget).count();
+            int total = Bukkit.getMaxPlayers(); // Or a custom number if you prefer
+            
+            plugin.getAudiences().all().sendMessage(miniMessage.deserialize(
+                "<gray>Waiting for Players <white>(<yellow>" + current + "<white>/<yellow>" + current + "<white>)"
+            ));
+            // Note: Using current/current as placeholder since "all-players" target count 
+            // is dynamic. If you have a specific target count in mind, replace the second current.
         }
     }
 }

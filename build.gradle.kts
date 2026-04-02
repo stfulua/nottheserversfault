@@ -45,7 +45,7 @@ dependencies {
 
 tasks {
     shadowJar {
-        archiveFileName.set("NotTheServersFault-1.1.1-beta.jar")
+        archiveFileName.set("NotTheServersFault-1.1.1.jar")
         
         minimize()
         

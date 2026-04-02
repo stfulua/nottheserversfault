@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import xyz.vprolabs.nottheserversfault.NotTheServersFault;
 import xyz.vprolabs.nottheserversfault.util.TargetUtil;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -143,7 +144,11 @@ public class LobbyManager {
             subtitleText = miniMessage.deserialize("<white>Type <green>/start <white>to ready up!");
         }
 
-        plugin.getAudiences().player(player).showTitle(Title.title(titleText, subtitleText));
+        // Set times explicitly to ensure visibility
+        Title.Times times = Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1500), Duration.ofMillis(500));
+        Title title = Title.title(titleText, subtitleText, times);
+        
+        plugin.getAudiences().player(player).showTitle(title);
         plugin.getAudiences().player(player).sendActionBar(miniMessage.deserialize("<red>Please turn the game volume <yellow>Up <red>before starting!"));
     }
 

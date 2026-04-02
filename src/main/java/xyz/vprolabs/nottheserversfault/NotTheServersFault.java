@@ -54,10 +54,10 @@ public final class NotTheServersFault extends JavaPlugin {
         }
 
         if (totalSize > 0 && totalSize <= 500L * 1024L * 1024L) {
-            getLogger().info("Found world folders (Total size: " + (totalSize / 1024 / 1024) + "MB). Deleting for fresh start...");
+            getLogger().info("Found world folders (Total size: " + (totalSize / 1024 / 1024) + "MB). Cleaning content for fresh start...");
             for (File dir : worldDirs) {
                 if (dir.exists()) {
-                    deleteFolder(dir);
+                    cleanFolder(dir);
                 }
             }
         } else if (totalSize > 500L * 1024L * 1024L) {
@@ -75,13 +75,21 @@ public final class NotTheServersFault extends JavaPlugin {
         }
     }
 
-    private void deleteFolder(File folder) {
-        try (Stream<Path> stream = Files.walk(folder.toPath())) {
+    private void cleanFolder(File folder) {
+        File[] files = folder.listFiles();
+        if (files == null) return;
+        for (File file : files) {
+            deleteFileRecursively(file);
+        }
+    }
+
+    private void deleteFileRecursively(File file) {
+        try (Stream<Path> stream = Files.walk(file.toPath())) {
             stream.sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
                     .forEach(File::delete);
         } catch (IOException e) {
-            getLogger().warning("Could not delete folder " + folder.getName() + ": " + e.getMessage());
+            getLogger().warning("Could not delete " + file.getName() + ": " + e.getMessage());
         }
     }
 
