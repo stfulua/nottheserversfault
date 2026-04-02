@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "xyz.vprolabs.nottheserversfault"
-version = "1.1.1-BETA"
+version = "1.1.1-beta"
 
 java {
     toolchain {
@@ -26,19 +26,14 @@ repositories {
 }
 
 dependencies {
-    // Standard Spigot API (Native)
     compileOnly("org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT")
-    
-    // PacketEvents for Tab list manipulation
     compileOnly("com.github.retrooper:packetevents-spigot:2.11.2")
-    
-    // Optional dependency
     compileOnly("org.popcraft:chunky-common:1.4.10")
 }
 
 tasks {
     shadowJar {
-        archiveFileName.set("NotTheServersFault-1.1.1.jar")
+        archiveFileName.set("NotTheServersFault-1.1.1-beta.jar")
         
         minimize()
         

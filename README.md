@@ -5,6 +5,7 @@
 **The ultimate "unfair" Minecraft challenge plugin.**
 
 [![Version](https://img.shields.io/badge/version-1.1.1--beta-blue.svg?style=for-the-badge)](https://modrinth.com/plugin/nottheserversfault)
+
 [![Platform](https://img.shields.io/badge/platform-Bukkit%20%2F%20Spigot%20%2F%20Paper%20%2F%20Purpur-green.svg?style=for-the-badge)](https://papermc.io)
 [![Java](https://img.shields.io/badge/java-21-orange.svg?style=for-the-badge)](https://www.oracle.com/java/)
 

@@ -56,6 +56,7 @@ public final class NotTheServersFault extends JavaPlugin {
             for (File dir : worldDirs) {
                 if (dir.exists()) {
                     cleanFolder(dir);
+                    ensureSubdirectories(dir);
                 }
             }
         } else if (totalSize > 500L * 1024L * 1024L) {
@@ -78,6 +79,14 @@ public final class NotTheServersFault extends JavaPlugin {
         if (files == null) return;
         for (File file : files) {
             deleteFileRecursively(file);
+        }
+    }
+
+    private void ensureSubdirectories(File worldFolder) {
+        String[] subs = {"playerdata", "stats", "advancements", "poi"};
+        for (String sub : subs) {
+            File f = new File(worldFolder, sub);
+            if (!f.exists()) f.mkdirs();
         }
     }
 
@@ -188,7 +197,7 @@ public final class NotTheServersFault extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("packetevents") != null) {
             PacketEvents.getAPI().terminate();
         }
-        getLogger().info("NotTheServersFault core has been disabled.");
+        getLogger().info("NotTheServersFault core has been enabled.");
     }
 
     public TwistManager getTwistManager() { return twistManager; }
