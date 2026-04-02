@@ -3,8 +3,6 @@ package xyz.vprolabs.nottheserversfault.manager;
 import org.bukkit.profile.PlayerProfile;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandSendEvent;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,7 +24,6 @@ import java.util.UUID;
 public class AdminManager implements Listener {
 
     private final NotTheServersFault plugin;
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final Map<UUID, PlayerProfile> originalProfiles = new HashMap<>();
     private boolean isVanished = true;
 
@@ -59,7 +56,7 @@ public class AdminManager implements Listener {
     public void toggleVanish(Player player) {
         setVanish(player, !isVanished);
         String msg = isVanished ? "§aYou are now vanished!" : "§cYou are now visible!";
-        plugin.getAudiences().player(player).sendMessage(Component.text(msg));
+        player.sendMessage(msg);
     }
 
     private void setVanish(Player admin, boolean vanish) {
@@ -102,13 +99,7 @@ public class AdminManager implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onAdvancement(PlayerAdvancementDoneEvent event) {
-        if (isExcluded(event.getPlayer())) {
-            // Standard Bukkit doesn't have event.message(null) for advancements
-            // This was a Paper-ism. On Spigot, we just ignore it as we can't easily cancel the broadcast here
-            // without more complex logic or just disabling advancement announcements globally.
-        }
-    }
+    public void onAdvancement(PlayerAdvancementDoneEvent event) {}
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent event) {

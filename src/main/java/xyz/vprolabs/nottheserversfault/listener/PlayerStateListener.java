@@ -1,6 +1,5 @@
 package xyz.vprolabs.nottheserversfault.listener;
 
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -11,6 +10,8 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import xyz.vprolabs.nottheserversfault.NotTheServersFault;
 import xyz.vprolabs.nottheserversfault.manager.LobbyManager;
 import xyz.vprolabs.nottheserversfault.manager.TwistManager;
@@ -21,7 +22,6 @@ public class PlayerStateListener implements Listener {
     private final NotTheServersFault plugin;
     private final LobbyManager lobbyManager;
     private final TwistManager twistManager;
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     public PlayerStateListener(NotTheServersFault plugin, LobbyManager lobbyManager, TwistManager twistManager) {
         this.plugin = plugin;
@@ -34,10 +34,8 @@ public class PlayerStateListener implements Listener {
         Player player = event.getEntity();
         if (!TargetUtil.isTarget(player)) return;
 
-        // Increment deaths
         twistManager.incrementDeaths();
 
-        // Ensure drop inventory is kept if in lobby
         if (!twistManager.isStarted()) {
             event.setKeepInventory(true);
             event.setKeepLevel(true);
@@ -50,16 +48,12 @@ public class PlayerStateListener implements Listener {
         Player player = event.getPlayer();
         if (!TargetUtil.isTarget(player)) return;
 
-        // Show death count
-        plugin.getAudiences().player(player).sendActionBar(miniMessage.deserialize("<red><bold>Death Count: <yellow>" + twistManager.getDeathCount()));
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§c§lDeath Count: §e" + twistManager.getDeathCount()));
 
         if (!twistManager.isStarted()) {
-            // Force back to lobby state
             lobbyManager.sendToLobby(player);
-            // Set respawn location to lobby
             event.setRespawnLocation(lobbyManager.getLobbyLocation()); 
         } else {
-            // If game started, ensure they are in Survival
             player.setGameMode(GameMode.SURVIVAL);
         }
     }
@@ -69,7 +63,6 @@ public class PlayerStateListener implements Listener {
         Player player = event.getPlayer();
         if (!TargetUtil.isTarget(player)) return;
 
-        // Prevent leaving survival if game is active or lobby if not started
         if (twistManager.isStarted() && !twistManager.isFinished()) {
             if (event.getNewGameMode() != GameMode.SURVIVAL) {
                 event.setCancelled(true);
@@ -80,12 +73,9 @@ public class PlayerStateListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         if (!twistManager.isStarted()) {
-            // Check if remaining players are all ready
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 lobbyManager.checkStartCondition();
             }, 1L);
-        } else if (!twistManager.isFinished()) {
-            // World reset logic removed as per new folder deletion requirement
         }
     }
 }

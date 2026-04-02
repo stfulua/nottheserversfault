@@ -1,6 +1,5 @@
 package xyz.vprolabs.nottheserversfault.listener;
 
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -13,13 +12,6 @@ public class ChatBlockListener implements Listener {
 
     public ChatBlockListener(LobbyManager lobbyManager) {
         this.lobbyManager = lobbyManager;
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onChat(AsyncPlayerChatEvent event) {
-        if (lobbyManager.isInLobby(event.getPlayer())) {
-            event.setCancelled(true);
-        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

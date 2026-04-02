@@ -6,7 +6,6 @@ import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfoRemove;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfoUpdate;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
@@ -20,7 +19,6 @@ public final class FakePlayerManager {
 
     private final NotTheServersFault plugin;
     private final TwistManager twistManager;
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private BukkitTask mainTask;
     
     private final List<String> fakeNames = Arrays.asList(
@@ -95,7 +93,7 @@ public final class FakePlayerManager {
     private void triggerFakePlayerEvent(Player target) {
         if (lastFakeName.containsKey(target.getUniqueId())) {
             String last = lastFakeName.get(target.getUniqueId());
-            plugin.getAudiences().player(target).sendMessage(miniMessage.deserialize("<yellow>" + last + " left the game"));
+            target.sendMessage("§e" + last + " left the game");
         }
 
         String name = fakeNames.get(ThreadLocalRandom.current().nextInt(fakeNames.size()));
@@ -105,7 +103,7 @@ public final class FakePlayerManager {
         addFakeToTab(target, name, fakeUuid);
         activeFakePlayers.computeIfAbsent(target.getUniqueId(), k -> new HashSet<>()).add(fakeUuid);
         
-        plugin.getAudiences().player(target).sendMessage(miniMessage.deserialize("<yellow>" + name + " joined the game"));
+        target.sendMessage("§e" + name + " joined the game");
 
         int messageDelay = ThreadLocalRandom.current().nextInt(200, 600);
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
@@ -113,7 +111,7 @@ public final class FakePlayerManager {
             if (!activeFakePlayers.get(target.getUniqueId()).contains(fakeUuid)) return;
             
             String msg = messages.get(ThreadLocalRandom.current().nextInt(messages.size()));
-            plugin.getAudiences().player(target).sendMessage(miniMessage.deserialize("<white><" + name + "> " + msg));
+            target.sendMessage("§f<" + name + "> " + msg);
             
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 removeFakeFromTab(target, fakeUuid);

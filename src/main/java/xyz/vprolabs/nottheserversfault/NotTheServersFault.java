@@ -2,7 +2,6 @@ package xyz.vprolabs.nottheserversfault;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -20,7 +19,6 @@ import java.util.stream.Stream;
 
 public final class NotTheServersFault extends JavaPlugin {
 
-    private BukkitAudiences audiences;
     private TwistManager twistManager;
     private LobbyManager lobbyManager;
     private GraceManager graceManager;
@@ -102,7 +100,6 @@ public final class NotTheServersFault extends JavaPlugin {
         }
 
         PacketEvents.getAPI().init();
-        this.audiences = BukkitAudiences.create(this);
 
         this.twistManager = new TwistManager(this);
         this.twistManager.load();
@@ -191,15 +188,9 @@ public final class NotTheServersFault extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("packetevents") != null) {
             PacketEvents.getAPI().terminate();
         }
-        
-        if (this.audiences != null) {
-            this.audiences.close();
-            this.audiences = null;
-        }
         getLogger().info("NotTheServersFault core has been disabled.");
     }
 
-    public BukkitAudiences getAudiences() { return audiences; }
     public TwistManager getTwistManager() { return twistManager; }
     public LobbyManager getLobbyManager() { return lobbyManager; }
     public GraceManager getGraceManager() { return graceManager; }

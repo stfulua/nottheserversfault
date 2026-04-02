@@ -1,9 +1,6 @@
 package xyz.vprolabs.nottheserversfault.manager;
 
-import net.kyori.adventure.bossbar.BossBar;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.title.Title;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -19,7 +16,6 @@ public class GoalManager implements Listener {
 
     private final NotTheServersFault plugin;
     private final TwistManager twistManager;
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private boolean finished = false;
 
     private static final Material GOAL_ITEM = Material.DIAMOND_BLOCK;
@@ -31,32 +27,20 @@ public class GoalManager implements Listener {
     }
 
     public void showGoalReminder() {
-        // Show "Guess the twists!" title after a short delay
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (finished) return;
-            Component guessTitle = miniMessage.deserialize("<gradient:red:gold><bold>Guess the twists!");
-            Title title = Title.title(guessTitle, Component.empty());
-            plugin.getAudiences().all().showTitle(title);
+            plugin.getServer().getOnlinePlayers().forEach(p -> p.sendTitle("§c§lGuess the twists!", "", 10, 40, 10));
         }, 20L);
 
-        // Show 15s Timer BossBar
-        Component barTitle = miniMessage.deserialize("<gold>Your goal: <white>" + GOAL_TEXT);
-        BossBar timerBar = BossBar.bossBar(barTitle, 1.0f, BossBar.Color.BLUE, BossBar.Overlay.PROGRESS);
-        
-        plugin.getAudiences().all().showBossBar(timerBar);
-
         new BukkitRunnable() {
-            int ticks = 300; // 15 seconds * 20 ticks
+            int ticks = 300; 
 
             @Override
             public void run() {
                 if (ticks <= 0 || finished) {
-                    plugin.getAudiences().all().hideBossBar(timerBar);
                     this.cancel();
                     return;
                 }
-
-                timerBar.progress((float) ticks / 300.0f);
                 ticks--;
             }
         }.runTaskTimer(plugin, 0L, 1L);
@@ -66,9 +50,7 @@ public class GoalManager implements Listener {
         finished = false;
     }
 
-    public void stop() {
-        // Nothing to do here
-    }
+    public void stop() {}
 
     @EventHandler
     public void onPickup(EntityPickupItemEvent event) {
@@ -85,9 +67,7 @@ public class GoalManager implements Listener {
     }
 
     @EventHandler
-    public void onJoin(PlayerJoinEvent event) {
-        // BossBar is handled by LobbyManager's sendToLobby before start
-    }
+    public void onJoin(PlayerJoinEvent event) {}
 
     private void checkGoal(Player player, Material material) {
         if (!twistManager.isActive() || finished) return;
@@ -101,19 +81,17 @@ public class GoalManager implements Listener {
         twistManager.deactivate();
         twistManager.setFinished(true);
         
-        Component title = miniMessage.deserialize("<green><bold>CHALLENGE COMPLETE!");
-        Component subtitle = miniMessage.deserialize("<white><yellow>" + player.getName() + " <white>got the Diamond Block!");
+        String title = "§a§lCHALLENGE COMPLETE!";
+        String subtitle = "§e" + player.getName() + " §fgot the Diamond Block!";
         
-        plugin.getAudiences().all().sendMessage(miniMessage.deserialize("<green><bold>CHALLENGE COMPLETE! <yellow>" + player.getName() + " <white>has won the challenge!"));
+        Bukkit.broadcastMessage("§a§lCHALLENGE COMPLETE! §e" + player.getName() + " §fhas won the challenge!");
         
-        plugin.getAudiences().all().showTitle(Title.title(title, subtitle));
-        plugin.getServer().getOnlinePlayers().forEach(p -> {
+        Bukkit.getOnlinePlayers().forEach(p -> {
+            p.sendTitle(title, subtitle, 10, 70, 20);
             p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
         });
         
         plugin.getInventoryShuffleManager().stop();
         plugin.getFakePlayerManager().stop();
-
-        // Start reset timer logic removed as per new world deletion requirement
     }
 }

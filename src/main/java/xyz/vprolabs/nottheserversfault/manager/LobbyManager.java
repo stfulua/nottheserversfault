@@ -1,10 +1,9 @@
 package xyz.vprolabs.nottheserversfault.manager;
 
-import net.kyori.adventure.bossbar.BossBar;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.title.Title;
 import org.bukkit.*;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -13,11 +12,11 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import xyz.vprolabs.nottheserversfault.NotTheServersFault;
 import xyz.vprolabs.nottheserversfault.util.TargetUtil;
 
-import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -29,7 +28,6 @@ public class LobbyManager {
     private final NotTheServersFault plugin;
     private final Map<UUID, BukkitTask> freezeTasks = new ConcurrentHashMap<>();
     private final Set<UUID> readyPlayers = ConcurrentHashMap.newKeySet();
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final Vector zeroVector = new Vector(0, 0, 0);
     private final Location lobbyLoc;
     private final BossBar goalBar;
@@ -43,11 +41,10 @@ public class LobbyManager {
         this.plugin = plugin;
         World world = Bukkit.getWorlds().get(0);
         this.lobbyLoc = new Location(world, 0.5, 6700, 0.5);
-        this.goalBar = BossBar.bossBar(
-            miniMessage.deserialize("<gold>Your goal: <white>Get a diamond block"),
-            1.0f,
-            BossBar.Color.BLUE,
-            BossBar.Overlay.PROGRESS
+        this.goalBar = Bukkit.createBossBar(
+            "§6Your goal: §fGet a diamond block",
+            BarColor.BLUE,
+            BarStyle.SOLID
         );
         generatePlatform();
     }
@@ -83,7 +80,7 @@ public class LobbyManager {
         player.setGravity(false);
         player.setAllowFlight(true);
         player.setFlying(true);
-        plugin.getAudiences().player(player).showBossBar(goalBar);
+        goalBar.addPlayer(player);
 
         BukkitTask task = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable() {
             int ticks = 0;
@@ -102,7 +99,8 @@ public class LobbyManager {
                 int ping = player.getPing();
                 boolean isLagging = ping > 250;
 
-                if (!isLagging && ThreadLocalRandom.current().nextInt(60) == 0) {
+                // Firework logic
+                if (!isLagging && ThreadLocalRandom.current().nextInt(100) == 0) {
                     spawnFirework(lobbyLoc.clone().add(
                         ThreadLocalRandom.current().nextDouble(-15, 15),
                         ThreadLocalRandom.current().nextDouble(5, 15),
@@ -110,12 +108,10 @@ public class LobbyManager {
                     ));
                 }
 
-                if (!isLagging && ticks % 8 == 0) {
-                    int step = (ticks / 8) % sequence.length;
-                    player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 0.6f, sequence[step]);
-                    if (ticks % 16 == 0) {
-                        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 0.4f, sequence[step] * 0.5f);
-                    }
+                // Reduced sound frequency to prevent packet bloat
+                if (!isLagging && ticks % 10 == 0) {
+                    int step = (ticks / 10) % sequence.length;
+                    player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 0.5f, sequence[step]);
                 }
 
                 if (ticks % 20 == 0) {
@@ -128,28 +124,24 @@ public class LobbyManager {
     }
 
     private void updateUI(Player player) {
-        Component titleText = miniMessage.deserialize("<gradient:gold:yellow><bold>WAITING FOR GAME");
-        boolean isExcluded = plugin.getTwistManager().isExcluded(player.getName());
-        Component subtitleText;
+        String title = "§6§lWAITING FOR GAME";
+        String subtitle;
         String chunkyProgress = plugin.getChunkyManager().getProgressString();
         
         if (chunkyProgress != null) {
-            titleText = miniMessage.deserialize("<gradient:red:gold><bold>LOADING TERRAIN...");
-            subtitleText = miniMessage.deserialize("<white>Progress: <yellow>" + chunkyProgress);
-        } else if (isExcluded) {
-            subtitleText = miniMessage.deserialize("<white>You are a <gray>Spectator <white>- Waiting for players...");
+            title = "§c§lLOADING TERRAIN...";
+            subtitle = "§fProgress: §e" + chunkyProgress;
+        } else if (plugin.getTwistManager().isExcluded(player.getName())) {
+            subtitle = "§fYou are a §7Spectator §f- Waiting...";
         } else if (readyPlayers.contains(player.getUniqueId())) {
-            subtitleText = miniMessage.deserialize("<green>READY! <white>Waiting for others...");
+            subtitle = "§aREADY! §fWaiting for others...";
         } else {
-            subtitleText = miniMessage.deserialize("<white>Type <green>/start <white>to ready up!");
+            subtitle = "§fType §a/start §fto ready up!";
         }
 
-        // Set times explicitly to ensure visibility
-        Title.Times times = Title.Times.times(Duration.ofMillis(0), Duration.ofMillis(1500), Duration.ofMillis(500));
-        Title title = Title.title(titleText, subtitleText, times);
-        
-        plugin.getAudiences().player(player).showTitle(title);
-        plugin.getAudiences().player(player).sendActionBar(miniMessage.deserialize("<red>Please turn the game volume <yellow>Up <red>before starting!"));
+        // Native Title sending
+        player.sendTitle(title, subtitle, 0, 30, 10);
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§cPlease turn volume §eUP §cbefore starting!"));
     }
 
     private void spawnFirework(Location loc) {
@@ -168,35 +160,35 @@ public class LobbyManager {
 
     public void setReady(@NotNull Player player) {
         if (plugin.getChunkyManager().isChunkyRunning()) {
-            plugin.getAudiences().player(player).sendMessage(miniMessage.deserialize("<red>Please wait for terrain to finish loading before starting!"));
+            player.sendMessage("§cPlease wait for terrain to finish loading before starting!");
             return;
         }
         if (plugin.getTwistManager().isExcluded(player.getName())) {
-            plugin.getAudiences().player(player).sendMessage(miniMessage.deserialize("<red>Spectators do not need to ready up!"));
+            player.sendMessage("§cSpectators do not need to ready up!");
             return;
         }
         if (readyPlayers.contains(player.getUniqueId())) {
-            plugin.getAudiences().player(player).sendMessage(miniMessage.deserialize("<yellow>You are already ready!"));
+            player.sendMessage("§eYou are already ready!");
             return;
         }
         readyPlayers.add(player.getUniqueId());
         int totalTargets = (int) Bukkit.getOnlinePlayers().stream().filter(TargetUtil::isTarget).count();
         int readyCount = readyPlayers.size();
-        plugin.getAudiences().all().sendMessage(miniMessage.deserialize("<green>" + player.getName() + " <white>is ready! (<yellow>" + readyCount + "<white>/<yellow>" + totalTargets + "<white>)"));
+        Bukkit.broadcastMessage("§a" + player.getName() + " §fis ready! (§e" + readyCount + "§f/§e" + totalTargets + "§f)");
         checkStartCondition();
     }
 
     public void checkStartCondition() {
         if (plugin.getTwistManager().isStarted()) return;
-        List<Player> targets = Bukkit.getOnlinePlayers().stream()
+        long targetCount = Bukkit.getOnlinePlayers().stream().filter(TargetUtil::isTarget).count();
+        if (targetCount == 0) return;
+        boolean allReady = Bukkit.getOnlinePlayers().stream()
                 .filter(TargetUtil::isTarget)
-                .map(p -> (Player) p)
-                .toList();
-        if (targets.isEmpty()) return;
-        boolean allReady = targets.stream().allMatch(p -> readyPlayers.contains(p.getUniqueId()));
+                .allMatch(p -> readyPlayers.contains(p.getUniqueId()));
+
         if (allReady) {
-            plugin.getAudiences().all().sendMessage(miniMessage.deserialize("<green><bold>ALL PLAYERS READY! <white>Starting challenge..."));
-            plugin.getServer().getOnlinePlayers().forEach(this::releaseFromLobby);
+            Bukkit.broadcastMessage("§a§lALL PLAYERS READY! §fStarting challenge...");
+            Bukkit.getOnlinePlayers().forEach(this::releaseFromLobby);
             plugin.getTwistManager().setStarted(true);
             plugin.getGraceManager().startCountdown();
         }
@@ -208,28 +200,19 @@ public class LobbyManager {
         player.setGravity(true);
         player.setAllowFlight(false);
         player.setFlying(false);
-        plugin.getAudiences().player(player).hideBossBar(goalBar);
+        goalBar.removePlayer(player);
         BukkitTask task = freezeTasks.remove(uuid);
         if (task != null) task.cancel();
         if (player.isOnline()) {
             player.teleport(player.getWorld().getSpawnLocation());
-            plugin.getAudiences().player(player).clearTitle();
+            player.resetTitle();
         }
     }
 
     public void shutdown() {
         freezeTasks.values().forEach(BukkitTask::cancel);
         freezeTasks.clear();
-        for (UUID uuid : freezeTasks.keySet()) {
-            Player player = plugin.getServer().getPlayer(uuid);
-            if (player != null && player.isOnline()) {
-                player.setGravity(true);
-                player.removePotionEffect(PotionEffectType.BLINDNESS);
-                player.setAllowFlight(false);
-                player.setFlying(false);
-                plugin.getAudiences().player(player).hideBossBar(goalBar);
-            }
-        }
+        goalBar.removeAll();
     }
 
     public Location getLobbyLocation() { return lobbyLoc.clone(); }

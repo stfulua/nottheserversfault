@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "xyz.vprolabs.nottheserversfault"
-version = "1.1.1-beta"
+version = "1.1.1-BETA"
 
 java {
     toolchain {
@@ -26,20 +26,13 @@ repositories {
 }
 
 dependencies {
+    // Standard Spigot API (Native)
     compileOnly("org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT")
     
-    // Core Adventure
-    implementation("net.kyori:adventure-api:4.18.0")
-    implementation("net.kyori:adventure-text-minimessage:4.18.0")
-    
-    // Minimal platform for Bukkit
-    implementation("net.kyori:adventure-platform-bukkit:4.3.4") {
-        exclude(group = "net.kyori", module = "adventure-text-serializer-gson")
-        exclude(group = "net.kyori", module = "adventure-text-serializer-legacy")
-        exclude(group = "net.kyori", module = "adventure-text-serializer-plain")
-    }
-    
+    // PacketEvents for Tab list manipulation
     compileOnly("com.github.retrooper:packetevents-spigot:2.11.2")
+    
+    // Optional dependency
     compileOnly("org.popcraft:chunky-common:1.4.10")
 }
 
@@ -52,7 +45,7 @@ tasks {
         exclude("META-INF/maven/**")
         exclude("META-INF/proguard/**")
         exclude("META-INF/versions/**")
-        exclude("LICENSE", "NOTICE", "about.html", "META-INF/services/org.codehaus.groovy.transform.ASTTransformation")
+        exclude("LICENSE", "NOTICE", "about.html")
     }
 
     build {

@@ -1,6 +1,5 @@
 package xyz.vprolabs.nottheserversfault.command;
 
-import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -11,8 +10,8 @@ import xyz.vprolabs.nottheserversfault.manager.AdminManager;
 
 public class AdminCommand implements CommandExecutor {
 
-    private final AdminManager adminManager;
     private final NotTheServersFault plugin;
+    private final AdminManager adminManager;
 
     public AdminCommand(NotTheServersFault plugin, AdminManager adminManager) {
         this.plugin = plugin;
@@ -27,12 +26,12 @@ public class AdminCommand implements CommandExecutor {
         }
 
         if (!player.hasPermission("ntsf.admin") && !plugin.getTwistManager().isExcluded(player.getName())) {
-            plugin.getAudiences().player(player).sendMessage(Component.text("§cNo permission."));
+            player.sendMessage("§cNo permission.");
             return true;
         }
 
         if (args.length == 0) {
-            plugin.getAudiences().player(player).sendMessage(Component.text("§cUsage: /ntsf <vanish>"));
+            player.sendMessage("§cUsage: /ntsf <vanish>");
             return true;
         }
 
@@ -42,7 +41,7 @@ public class AdminCommand implements CommandExecutor {
                 adminManager.toggleVanish(player);
                 break;
             default:
-                plugin.getAudiences().player(player).sendMessage(Component.text("§cUnknown subcommand. Usage: /ntsf <vanish>"));
+                player.sendMessage("§cUnknown subcommand. Usage: /ntsf <vanish>");
                 break;
         }
 
