@@ -48,7 +48,7 @@ public class PlayerStateListener implements Listener {
         Player player = event.getPlayer();
         if (!TargetUtil.isTarget(player)) return;
 
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§c§lDeath Count: §e" + twistManager.getDeathCount()));
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§c§lDeath Count: §e" + twistManager.getDeathCount()));
 
         if (!twistManager.isStarted()) {
             lobbyManager.sendToLobby(player);

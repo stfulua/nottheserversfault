@@ -138,7 +138,7 @@ public class LobbyManager {
         }
 
         player.sendTitle(title, subtitle, 0, 40, 10);
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§cPlease turn volume §eUP §cbefore starting!"));
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§cPlease turn volume §eUP §cbefore starting!"));
     }
 
     private void spawnFirework(Location loc) {

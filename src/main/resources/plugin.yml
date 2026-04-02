@@ -1,5 +1,5 @@
 name: NotTheServersFault
-version: 1.1.1-beta
+version: 1.0.0
 main: xyz.vprolabs.nottheserversfault.NotTheServersFault
 api-version: '1.21'
 description: A chaotic challenge for 1.21.x (1.21 - 1.21.11) on Bukkit, Spigot, Paper, and Purpur. Report bugs at discord.gg/SNzUYWbc5Q
