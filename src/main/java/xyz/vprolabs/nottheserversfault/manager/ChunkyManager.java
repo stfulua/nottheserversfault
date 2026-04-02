@@ -8,7 +8,6 @@ import java.util.Map;
 
 /**
  * Manages integration with the Chunky pre-generation plugin via reflection.
- * This avoids direct dependency issues if the API classes are not exactly matching.
  */
 public final class ChunkyManager {
 
@@ -19,12 +18,18 @@ public final class ChunkyManager {
 
     public ChunkyManager(NotTheServersFault plugin) {
         this.plugin = plugin;
+        setupHook();
+    }
+
+    private void setupHook() {
         try {
             if (plugin.getServer().getPluginManager().getPlugin("Chunky") != null) {
-                this.chunkyApi = Bukkit.getServicesManager().load(Class.forName("org.popcraft.chunky.api.ChunkyAPI"));
+                Class<?> apiClass = Class.forName("org.popcraft.chunky.api.ChunkyAPI");
+                this.chunkyApi = Bukkit.getServicesManager().load(apiClass);
                 if (this.chunkyApi != null) {
-                    this.getTasksMethod = chunkyApi.getClass().getMethod("getTasks");
-                    plugin.getLogger().info("Successfully hooked into Chunky API via reflection.");
+                    // Try to get method from the actual interface
+                    this.getTasksMethod = apiClass.getMethod("getTasks");
+                    plugin.getLogger().info("Successfully hooked into Chunky API.");
                 }
             }
         } catch (Exception e) {

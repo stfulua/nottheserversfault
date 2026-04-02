@@ -91,30 +91,32 @@ public class LobbyManager {
                     releaseFromLobby(player);
                     return;
                 }
+                
+                // PHYSICS (Every tick)
                 if (player.getLocation().distanceSquared(lobbyLoc) > 25) {
                     player.teleport(lobbyLoc);
                 }
                 player.setVelocity(zeroVector);
                 
-                int ping = player.getPing();
-                boolean isLagging = ping > 250;
-
-                // Firework logic
-                if (!isLagging && ThreadLocalRandom.current().nextInt(100) == 0) {
-                    spawnFirework(lobbyLoc.clone().add(
-                        ThreadLocalRandom.current().nextDouble(-15, 15),
-                        ThreadLocalRandom.current().nextDouble(5, 15),
-                        ThreadLocalRandom.current().nextDouble(-15, 15)
-                    ));
-                }
-
-                // Reduced sound frequency to prevent packet bloat
-                if (!isLagging && ticks % 10 == 0) {
-                    int step = (ticks / 10) % sequence.length;
-                    player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 0.5f, sequence[step]);
-                }
-
+                // OPTIMIZED UI & SOUND (Every 20 ticks / 1s)
                 if (ticks % 20 == 0) {
+                    int ping = player.getPing();
+                    boolean isLagging = ping > 250;
+
+                    if (!isLagging) {
+                        // Sound logic
+                        int step = (ticks / 20) % sequence.length;
+                        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 0.5f, sequence[step]);
+                        
+                        // Firework logic (Reduced probability)
+                        if (ThreadLocalRandom.current().nextInt(10) == 0) {
+                            spawnFirework(lobbyLoc.clone().add(
+                                ThreadLocalRandom.current().nextDouble(-10, 10),
+                                ThreadLocalRandom.current().nextDouble(5, 10),
+                                ThreadLocalRandom.current().nextDouble(-10, 10)
+                            ));
+                        }
+                    }
                     updateUI(player);
                 }
                 ticks++;
@@ -139,8 +141,7 @@ public class LobbyManager {
             subtitle = "§fType §a/start §fto ready up!";
         }
 
-        // Native Title sending
-        player.sendTitle(title, subtitle, 0, 30, 10);
+        player.sendTitle(title, subtitle, 0, 40, 10);
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§cPlease turn volume §eUP §cbefore starting!"));
     }
 
@@ -172,9 +173,9 @@ public class LobbyManager {
             return;
         }
         readyPlayers.add(player.getUniqueId());
-        int totalTargets = (int) Bukkit.getOnlinePlayers().stream().filter(TargetUtil::isTarget).count();
-        int readyCount = readyPlayers.size();
-        Bukkit.broadcastMessage("§a" + player.getName() + " §fis ready! (§e" + readyCount + "§f/§e" + totalTargets + "§f)");
+        int current = readyPlayers.size();
+        int total = (int) Bukkit.getOnlinePlayers().stream().filter(TargetUtil::isTarget).count();
+        Bukkit.broadcastMessage("§a" + player.getName() + " §fis ready! (§e" + current + "§f/§e" + total + "§f)");
         checkStartCondition();
     }
 

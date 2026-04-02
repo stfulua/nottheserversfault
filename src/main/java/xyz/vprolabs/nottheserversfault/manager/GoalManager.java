@@ -3,6 +3,9 @@ package xyz.vprolabs.nottheserversfault.manager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -32,15 +35,22 @@ public class GoalManager implements Listener {
             plugin.getServer().getOnlinePlayers().forEach(p -> p.sendTitle("§c§lGuess the twists!", "", 10, 40, 10));
         }, 20L);
 
+        // Native BossBar for 15 seconds
+        BossBar bar = Bukkit.createBossBar("§6Your goal: §f" + GOAL_TEXT, BarColor.BLUE, BarStyle.SOLID);
+        Bukkit.getOnlinePlayers().forEach(bar::addPlayer);
+
         new BukkitRunnable() {
-            int ticks = 300; 
+            int ticks = 300; // 15s
 
             @Override
             public void run() {
                 if (ticks <= 0 || finished) {
+                    bar.removeAll();
                     this.cancel();
                     return;
                 }
+                
+                bar.setProgress(Math.max(0.0, Math.min(1.0, (double) ticks / 300.0)));
                 ticks--;
             }
         }.runTaskTimer(plugin, 0L, 1L);

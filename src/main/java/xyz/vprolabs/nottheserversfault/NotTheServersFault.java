@@ -36,31 +36,35 @@ public final class NotTheServersFault extends JavaPlugin {
             PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
             PacketEvents.getAPI().load();
         }
-        deleteWorldFolders();
+        
+        // ASYNC: Delete world folders contents on startup to prevent main thread hang
+        new Thread(this::deleteWorldFolders, "NTSF-WorldCleaner").start();
     }
 
     private void deleteWorldFolders() {
         String[] worlds = {"world", "world_nether", "world_the_end"};
         long totalSize = 0;
+        File container = getServer().getWorldContainer();
         File[] worldDirs = new File[worlds.length];
         
         for (int i = 0; i < worlds.length; i++) {
-            worldDirs[i] = new File(getServer().getWorldContainer(), worlds[i]);
+            worldDirs[i] = new File(container, worlds[i]);
             if (worldDirs[i].exists()) {
                 totalSize += getFolderSize(worldDirs[i]);
             }
         }
 
         if (totalSize > 0 && totalSize <= 500L * 1024L * 1024L) {
-            getLogger().info("Found world folders (Total size: " + (totalSize / 1024 / 1024) + "MB). Cleaning content for fresh start...");
+            getLogger().info("Cleaning world folders (Total size: " + (totalSize / 1024 / 1024) + "MB) in background...");
             for (File dir : worldDirs) {
                 if (dir.exists()) {
                     cleanFolder(dir);
                     ensureSubdirectories(dir);
                 }
             }
+            getLogger().info("World folders cleaned successfully.");
         } else if (totalSize > 500L * 1024L * 1024L) {
-            getLogger().warning("World folders exceed 500MB (" + (totalSize / 1024 / 1024) + "MB). Skipping deletion for safety.");
+            getLogger().warning("World folders exceed 500MB (" + (totalSize / 1024 / 1024) + "MB). Skipping background deletion.");
         }
     }
 
@@ -96,7 +100,7 @@ public final class NotTheServersFault extends JavaPlugin {
                     .map(Path::toFile)
                     .forEach(File::delete);
         } catch (IOException e) {
-            getLogger().warning("Could not delete " + file.getName() + ": " + e.getMessage());
+            // Log warning but don't crash
         }
     }
 
@@ -197,7 +201,7 @@ public final class NotTheServersFault extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("packetevents") != null) {
             PacketEvents.getAPI().terminate();
         }
-        getLogger().info("NotTheServersFault core has been enabled.");
+        getLogger().info("NotTheServersFault core has been disabled.");
     }
 
     public TwistManager getTwistManager() { return twistManager; }
