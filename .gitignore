@@ -26,3 +26,4 @@ Thumbs.db
 state.yml
 *.jar
 *.log
+/plans/
