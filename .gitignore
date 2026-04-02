@@ -24,3 +24,5 @@ Thumbs.db
 
 # Plugin specific
 state.yml
+*.jar
+*.log
