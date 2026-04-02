@@ -161,10 +161,12 @@ public final class NotTheServersFault extends JavaPlugin {
         getServer().getScheduler().runTaskLater(this, () -> {
             if (getServer().getPluginManager().getPlugin("Chunky") != null) {
                 String worldName = getServer().getWorlds().get(0).getName();
-                getServer().dispatchCommand(getServer().getConsoleSender(), "chunky world " + worldName);
-                getServer().dispatchCommand(getServer().getConsoleSender(), "chunky center 0 0");
-                getServer().dispatchCommand(getServer().getConsoleSender(), "chunky radius 200");
-                getServer().dispatchCommand(getServer().getConsoleSender(), "chunky start");
+                org.bukkit.command.ConsoleCommandSender console = getServer().getConsoleSender();
+                getServer().dispatchCommand(console, "chunky silent");
+                getServer().dispatchCommand(console, "chunky world " + worldName);
+                getServer().dispatchCommand(console, "chunky center 0 0");
+                getServer().dispatchCommand(console, "chunky radius 200");
+                getServer().dispatchCommand(console, "chunky start");
             }
         }, 40L);
     }
