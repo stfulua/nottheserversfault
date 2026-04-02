@@ -72,7 +72,7 @@ public class MobSpawnListener implements Listener {
         };
         EntityType type = types[ThreadLocalRandom.current().nextInt(types.length)];
         
-        Monster monster = (Monster) loc.getWorld().spawnEntity(loc, type, CreatureSpawnEvent.SpawnReason.CUSTOM);
+        Monster monster = (Monster) loc.getWorld().spawnEntity(loc, type);
         monster.getPersistentDataContainer().set(sunImmuneKey, PersistentDataType.BYTE, (byte) 1);
     }
 
@@ -88,9 +88,14 @@ public class MobSpawnListener implements Listener {
         // Random sizes for animals
         if (event.getEntity() instanceof Animals animals) {
             double scale = ThreadLocalRandom.current().nextDouble(0.2, 5.0);
-            AttributeInstance attribute = animals.getAttribute(Attribute.SCALE);
-            if (attribute != null) {
-                attribute.setBaseValue(scale);
+            try {
+                // GENERIC_SCALE is available on 1.20.5+
+                AttributeInstance attribute = animals.getAttribute(Attribute.valueOf("GENERIC_SCALE"));
+                if (attribute != null) {
+                    attribute.setBaseValue(scale);
+                }
+            } catch (IllegalArgumentException ignored) {
+                // If the attribute doesn't exist on this version/entity
             }
         }
     }

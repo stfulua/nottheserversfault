@@ -22,30 +22,27 @@ public class AdminCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("§cOnly players can run this command."));
+            sender.sendMessage("§cOnly players can run this command.");
             return true;
         }
 
         if (!player.hasPermission("ntsf.admin") && !plugin.getTwistManager().isExcluded(player.getName())) {
-            player.sendMessage(Component.text("§cNo permission."));
+            plugin.getAudiences().player(player).sendMessage(Component.text("§cNo permission."));
             return true;
         }
 
         if (args.length == 0) {
-            player.sendMessage(Component.text("§cUsage: /ntsf <herobrine|vanish>"));
+            plugin.getAudiences().player(player).sendMessage(Component.text("§cUsage: /ntsf <vanish>"));
             return true;
         }
 
         String subCommand = args[0].toLowerCase();
         switch (subCommand) {
-            case "herobrine":
-                adminManager.toggleHerobrine(player);
-                break;
             case "vanish":
                 adminManager.toggleVanish(player);
                 break;
             default:
-                player.sendMessage(Component.text("§cUnknown subcommand. Usage: /ntsf <herobrine|vanish>"));
+                plugin.getAudiences().player(player).sendMessage(Component.text("§cUnknown subcommand. Usage: /ntsf <vanish>"));
                 break;
         }
 

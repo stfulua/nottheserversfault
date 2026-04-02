@@ -1,87 +1,65 @@
-# 👻 NotTheServersFault
+<div align="center">
 
-**"It's not the server's fault, it's just the game... or is it?"**
+# 🛠️ NotTheServersFault
 
-NotTheServersFault is a high-quality, production-ready "Troll Challenge" plugin for Minecraft servers. Perfect for content creators, events, or large-scale multiplayer chaos. **Every player who joins becomes a target**, tasked with reaching the goal while the world slowly starts to "break" around them.
+**The ultimate "unfair" Minecraft challenge plugin.**
 
----
-
-## 💎 Features Overview
-
-- **Mass Multiplayer Support**: No longer limited to one target! Every non-admin player is part of the challenge.
-- **Automatic World Reset**: Configurable system that automatically clears world data and restarts the server after the challenge is over or if everyone leaves.
-- **Intelligent Structure Removal**: Now supports all village types (Spruce, Desert, Savannah, etc.) and various other generated structures.
-- **Ready System**: The challenge only begins once **all online players** have typed `/start`.
-- **Winner Broadcasts**: When a player completes the challenge, the entire server is notified.
-- **Dynamic Lobby System**: Custom-built high-altitude glass box with immersive music and visual effects.
-- **Tab List Ghosting**: Simulated "fake" players randomly appear in the Tab list.
-- **Fake Player Chat**: These ghostly presences will occasionally send cryptic messages in chat.
-- **Configurable Exclusions**: Easily exclude admins via the `config.yml`.
-- **Seamless Integration**: Fully compatible with **PacketEvents** for high-performance ghostly visuals.
+[![Version](https://img.shields.io/badge/version-1.1.1--beta-blue.svg?style=for-the-badge)](https://modrinth.com/plugin/nottheserversfault)
+[![Platform](https://img.shields.io/badge/platform-Bukkit%20%2F%20Spigot%20%2F%20Paper%20%2F%20Purpur-green.svg?style=for-the-badge)](https://papermc.io)
+[![Java](https://img.shields.io/badge/java-21-orange.svg?style=for-the-badge)](https://www.oracle.com/java/)
 
 ---
 
-## 🎭 The Twists (Spoiler Alert!)
+</div>
 
+### ❓ Overview
+**NotTheServersFault** is a unique challenge plugin designed for content creators or friends who want a bit of chaotic fun. The goal is simple: **Get a Diamond Block.** 
+
+However, the world is full of "glitches" and reality-bending twists. From fake players in chat to blocks that refuse to stay broken, it creates an atmosphere of server lag that is actually part of the game.
+
+### 🏆 Competition
+This plugin is built for **multiple players** to compete at once. 
+- **The Lobby:** Everyone starts in a glass box at Y=6700 with Interstellar-style music. 
+- **Ready Up:** Use `/start` to mark yourself as ready. 
+- **Winning:** The first person to obtain a **Diamond Block** wins, and the challenge ends. 
+- **Reset:** The plugin automatically resets the world once a winner is crowned.
+
+---
+
+### 🌑 The Twists
 <details>
-<summary><b>CLICK TO REVEAL THE TWISTS (PLAYERS BEWARE!)</b></summary>
+<summary><b>Click to reveal the "glitches" ⚠️</b></summary>
 
-The "Twists" are the core of the experience. They activate after a short grace period and subtly disrupt the target players:
-
-- **🔄 Inventory Shuffle**: At random intervals, the player's inventory contents will shuffle themselves.
-- **🧱 Block Desync**: Common blocks (stone, dirt, wood) have a chance to "desync"—they disappear when broken, but reappear a split second later.
-- **⚒️ Cursed Crafting**: Crafting attempts can "glitch," resulting in useless items instead of what they intended.
-- **🏚️ Vanishing Civilizations**: As the player approaches a generated structure (Villages, Temples, etc.), the building materials (logs, planks, cobblestone, furniture) will rapidly vanish into thin air.
-- **👀 Stalker (Herobrine)**: A ghostly entity stalks players from the distance. Sometimes he watches, sometimes he gets close...
-- **👻 Phantom Interactions**: Nearby doors and trapdoors will randomly open and close by themselves.
-- **🎧 Paranoia Ambience**: Creepy sounds play behind players, accompanied by occasional "phantom hits."
-- **💎 Diamond Swap**: The ultimate troll—Diamond ores drop dirt, while Lapis ores drop Diamonds!
+1.  **Block Desync:** Common blocks like Stone or Dirt might "revert" instantly after being broken.
+2.  **Cursed Crafting:** 10% chance for crafts to fail and give you "trash" instead.
+3.  **The Great Swap:** Diamond Ore gives Dirt. Diamonds are found by breaking **Lapis Ore** below Y=10.
+4.  **Daylight Spawns:** Hostile mobs spawn near you during the day and are immune to sunlight.
+5.  **Ghost Players:** Fake players join/leave and send messages to mess with your head.
+6.  **Inventory Shuffle:** Your inventory randomly shuffles every 5 minutes.
+7.  **Vanishing Structures:** Villages and structures disappear when you get too close.
+8.  **Sun Immunity:** Monsters are permanentely protected from fire and sunlight.
 
 </details>
 
 ---
 
-## 🛠️ Installation
+### ⚙️ Setup
+- `/start`: Ready up in the lobby.
+- `/admin`: Administrative controls (Requires permission).
+- **Setup:** Drop the `.jar` into your plugins folder.
 
-1. Download and install **[PacketEvents](https://modrinth.com/plugin/packetevents)** (Required).
-2. Download and install **[Chunky](https://modrinth.com/plugin/chunky)** (Highly Recommended).
-3. Drop `NotTheServersFault.jar` into your `plugins` folder.
-4. Restart your server.
-5. Configure excluded players and reset settings in `plugins/NotTheServersFault/config.yml`.
-
----
-
-## ⚙️ Configuration
-
-Set your players and reset preferences:
-
-```yaml
-settings:
-  excluded-players:
-    - "ExamplePlayer1"
-
-world-reset:
-  enabled: true
-  reset-delay-minutes: 30
-```
+### 📝 Requirements
+- **Minecraft 1.21.x** (Bukkit, Spigot, Paper, Purpur)
+- **Java 21**
+- **PacketEvents** (Required dependency)
+- **Chunky** (Highly recommended for pre-generating terrain)
 
 ---
 
-## 🚀 Performance Notes
+### 🔗 Links
+- **Discord:** [Join for Support & Bug Reports](https://discord.gg/SNzUYWbc5Q)
+- **Donation:** [Support the project on Ko-fi](https://ko-fi.com/v4bi)
 
-- **Packet-Based Ghosting**: Herobrine and fake players are client-side via packets, ensuring zero impact on server entity counts.
-- **Efficient Batch Processing**: World resets and structure removals are handled in batches to prevent server lag.
-- **Version Compatibility**: Supports Minecraft 1.21 up to 1.21.4.
-
----
-
-## 🔗 Links & Credits
-
-- **Developer**: [vProLabs](https://vprolabs.xyz)
-- **Discord**: [Join our Discord](https://discord.gg/SNzUYWbc5Q)
-- **Support the Project**: [Ko-fi](https://ko-fi.com/v4bi)
-- **GitHub**: [Source Code](https://github.com/stfulua/nottheserversfault)
-
----
-
-*Licensed under the MIT License.*
+<div align="center">
+  <sub>Built with ❤️ by vProLabs</sub>
+</div>

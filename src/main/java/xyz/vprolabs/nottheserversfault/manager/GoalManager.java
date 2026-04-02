@@ -36,14 +36,14 @@ public class GoalManager implements Listener {
             if (finished) return;
             Component guessTitle = miniMessage.deserialize("<gradient:red:gold><bold>Guess the twists!");
             Title title = Title.title(guessTitle, Component.empty());
-            plugin.getServer().getOnlinePlayers().forEach(p -> p.showTitle(title));
+            plugin.getAudiences().all().showTitle(title);
         }, 20L);
 
         // Show 15s Timer BossBar
         Component barTitle = miniMessage.deserialize("<gold>Your goal: <white>" + GOAL_TEXT);
         BossBar timerBar = BossBar.bossBar(barTitle, 1.0f, BossBar.Color.BLUE, BossBar.Overlay.PROGRESS);
         
-        plugin.getServer().getOnlinePlayers().forEach(p -> p.showBossBar(timerBar));
+        plugin.getAudiences().all().showBossBar(timerBar);
 
         new BukkitRunnable() {
             int ticks = 300; // 15 seconds * 20 ticks
@@ -51,7 +51,7 @@ public class GoalManager implements Listener {
             @Override
             public void run() {
                 if (ticks <= 0 || finished) {
-                    plugin.getServer().getOnlinePlayers().forEach(p -> p.hideBossBar(timerBar));
+                    plugin.getAudiences().all().hideBossBar(timerBar);
                     this.cancel();
                     return;
                 }
@@ -104,18 +104,16 @@ public class GoalManager implements Listener {
         Component title = miniMessage.deserialize("<green><bold>CHALLENGE COMPLETE!");
         Component subtitle = miniMessage.deserialize("<white><yellow>" + player.getName() + " <white>got the Diamond Block!");
         
-        plugin.getServer().broadcast(miniMessage.deserialize("<green><bold>CHALLENGE COMPLETE! <yellow>" + player.getName() + " <white>has won the challenge!"));
+        plugin.getAudiences().all().sendMessage(miniMessage.deserialize("<green><bold>CHALLENGE COMPLETE! <yellow>" + player.getName() + " <white>has won the challenge!"));
         
+        plugin.getAudiences().all().showTitle(Title.title(title, subtitle));
         plugin.getServer().getOnlinePlayers().forEach(p -> {
-            p.showTitle(Title.title(title, subtitle));
             p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
         });
         
-        plugin.getHerobrineManager().stop();
         plugin.getInventoryShuffleManager().stop();
         plugin.getFakePlayerManager().stop();
 
-        // Start reset timer after goal finished
-        plugin.getWorldResetManager().startResetTimer();
+        // Start reset timer logic removed as per new world deletion requirement
     }
 }

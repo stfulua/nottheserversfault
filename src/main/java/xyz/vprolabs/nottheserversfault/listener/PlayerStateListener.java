@@ -51,7 +51,7 @@ public class PlayerStateListener implements Listener {
         if (!TargetUtil.isTarget(player)) return;
 
         // Show death count
-        player.sendActionBar(miniMessage.deserialize("<red><bold>Death Count: <yellow>" + twistManager.getDeathCount()));
+        plugin.getAudiences().player(player).sendActionBar(miniMessage.deserialize("<red><bold>Death Count: <yellow>" + twistManager.getDeathCount()));
 
         if (!twistManager.isStarted()) {
             // Force back to lobby state
@@ -85,12 +85,7 @@ public class PlayerStateListener implements Listener {
                 lobbyManager.checkStartCondition();
             }, 1L);
         } else if (!twistManager.isFinished()) {
-            // If game active, start reset timer if last target leaves
-            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                if (Bukkit.getOnlinePlayers().stream().noneMatch(TargetUtil::isTarget)) {
-                    plugin.getWorldResetManager().startResetTimer();
-                }
-            }, 1L);
+            // World reset logic removed as per new folder deletion requirement
         }
     }
 }

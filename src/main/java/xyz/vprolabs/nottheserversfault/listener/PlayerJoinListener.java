@@ -26,11 +26,6 @@ public class PlayerJoinListener implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         
-        // Cancel reset timer if a target joins
-        if (TargetUtil.isTarget(player)) {
-            plugin.getWorldResetManager().cancelResetTimer();
-        }
-
         // Handle joining while dead or in a broken state
         if (player.isDead()) {
             player.spigot().respawn();

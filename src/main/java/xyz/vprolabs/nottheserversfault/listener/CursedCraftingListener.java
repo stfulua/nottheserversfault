@@ -10,6 +10,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.inventory.ItemStack;
+import xyz.vprolabs.nottheserversfault.NotTheServersFault;
 import xyz.vprolabs.nottheserversfault.manager.TwistManager;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -48,7 +49,7 @@ public class CursedCraftingListener implements Listener {
             Material trollMaterial = trolls[ThreadLocalRandom.current().nextInt(trolls.length)];
             
             player.getInventory().addItem(new ItemStack(trollMaterial));
-            player.sendMessage(miniMessage.deserialize("<red><italic>The crafting table seems to be lagging..."));
+            NotTheServersFault.getPlugin(NotTheServersFault.class).getAudiences().player(player).sendMessage(miniMessage.deserialize("<red><italic>The crafting table seems to be lagging..."));
             
             // Close inventory to simulate a "glitch"
             player.closeInventory();

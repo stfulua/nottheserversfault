@@ -2,6 +2,8 @@ package xyz.vprolabs.nottheserversfault.manager;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import xyz.vprolabs.nottheserversfault.NotTheServersFault;
@@ -24,11 +26,21 @@ public final class GraceManager {
     public void startCountdown() {
         if (countdownTask != null) return;
 
-        // Say Good Luck immediately
-        TargetUtil.findTarget(plugin.getServer()).ifPresent(target -> target.sendMessage(GOOD_LUCK));
-
-        // Show goal reminder for 15s
-        plugin.getGoalManager().showGoalReminder();
+        // Wait 5 seconds after start
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            // Clear chat for everyone
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                for (int i = 0; i < 100; i++) {
+                    player.sendMessage("");
+                }
+            }
+            
+            // Send "Good Luck." in red
+            plugin.getAudiences().all().sendMessage(GOOD_LUCK);
+            
+            // Show goal reminder for 15s
+            plugin.getGoalManager().showGoalReminder();
+        }, 100L); // 5 seconds
 
         scheduleActivation(GRACE_DURATION_MS);
     }
@@ -59,7 +71,6 @@ public final class GraceManager {
 
         twistManager.activate();
         plugin.getInventoryShuffleManager().start();
-        plugin.getHerobrineManager().start();
         plugin.getGoalManager().start();
         plugin.getStructureDisappearManager().start();
         plugin.getAmbienceManager().start();
