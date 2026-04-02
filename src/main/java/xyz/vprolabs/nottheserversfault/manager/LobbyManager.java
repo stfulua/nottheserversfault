@@ -92,23 +92,19 @@ public class LobbyManager {
                     return;
                 }
                 
-                // PHYSICS (Every tick)
                 if (player.getLocation().distanceSquared(lobbyLoc) > 25) {
                     player.teleport(lobbyLoc);
                 }
                 player.setVelocity(zeroVector);
                 
-                // OPTIMIZED UI & SOUND (Every 20 ticks / 1s)
                 if (ticks % 20 == 0) {
                     int ping = player.getPing();
                     boolean isLagging = ping > 250;
 
                     if (!isLagging) {
-                        // Sound logic
                         int step = (ticks / 20) % sequence.length;
                         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 0.5f, sequence[step]);
                         
-                        // Firework logic (Reduced probability)
                         if (ThreadLocalRandom.current().nextInt(10) == 0) {
                             spawnFirework(lobbyLoc.clone().add(
                                 ThreadLocalRandom.current().nextDouble(-10, 10),
@@ -188,10 +184,28 @@ public class LobbyManager {
                 .allMatch(p -> readyPlayers.contains(p.getUniqueId()));
 
         if (allReady) {
+            resetWorldState();
             Bukkit.broadcastMessage("§a§lALL PLAYERS READY! §fStarting challenge...");
             Bukkit.getOnlinePlayers().forEach(this::releaseFromLobby);
             plugin.getTwistManager().setStarted(true);
             plugin.getGraceManager().startCountdown();
+        }
+    }
+
+    private void resetWorldState() {
+        World world = Bukkit.getWorlds().get(0);
+        world.setTime(0);
+        world.setStorm(false);
+        world.setThundering(false);
+        
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.setHealth(20.0);
+            player.setFoodLevel(20);
+            player.setSaturation(5.0f);
+            player.setFireTicks(0);
+            for (PotionEffect effect : player.getActivePotionEffects()) {
+                player.removePotionEffect(effect.getType());
+            }
         }
     }
 
