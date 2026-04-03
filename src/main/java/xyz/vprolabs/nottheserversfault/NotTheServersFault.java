@@ -6,6 +6,7 @@ import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 import xyz.vprolabs.nottheserversfault.command.StartCommand;
+import xyz.vprolabs.nottheserversfault.command.AdminCommand;
 import xyz.vprolabs.nottheserversfault.listener.*;
 import xyz.vprolabs.nottheserversfault.manager.*;
 
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -26,7 +28,6 @@ public final class NotTheServersFault extends JavaPlugin {
     private GoalManager goalManager;
     private StructureDisappearManager structureDisappearManager;
     private AmbienceManager ambienceManager;
-    private AdminManager adminManager;
     private FakePlayerManager fakePlayerManager;
     private ChunkyManager chunkyManager;
 
@@ -36,62 +37,34 @@ public final class NotTheServersFault extends JavaPlugin {
             PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
             PacketEvents.getAPI().load();
         }
-        
-        // ASYNC: Delete world folders contents on startup to prevent main thread hang
-        new Thread(this::deleteWorldFolders, "NTSF-WorldCleaner").start();
+
+        // Delete world folders contents on startup synchronously to avoid race conditions with world loading
+        deleteWorldFolders();
     }
 
     private void deleteWorldFolders() {
         String[] worlds = {"world", "world_nether", "world_the_end"};
-        long totalSize = 0;
         File container = getServer().getWorldContainer();
-        File[] worldDirs = new File[worlds.length];
         
-        for (int i = 0; i < worlds.length; i++) {
-            worldDirs[i] = new File(container, worlds[i]);
-            if (worldDirs[i].exists()) {
-                totalSize += getFolderSize(worldDirs[i]);
-            }
-        }
-
-        if (totalSize > 0 && totalSize <= 500L * 1024L * 1024L) {
-            getLogger().info("Cleaning world folders (Total size: " + (totalSize / 1024 / 1024) + "MB) in background...");
-            for (File dir : worldDirs) {
-                if (dir.exists()) {
-                    cleanFolder(dir);
-                    ensureSubdirectories(dir);
+        getLogger().info("Aggressively deleting world folders completely to ensure fresh generation...");
+        for (String worldName : worlds) {
+            File worldDir = new File(container, worldName);
+            if (worldDir.exists()) {
+                deleteFileRecursively(worldDir);
+                
+                // Recreate necessary directories that the server might have already initialized
+                // before the onLoad() phase, preventing NoSuchFileException and FileNotFoundException.
+                worldDir.mkdirs();
+                if (worldName.equals("world")) {
+                    new File(worldDir, "playerdata").mkdirs();
+                    new File(worldDir, "stats").mkdirs();
+                    new File(worldDir, "advancements").mkdirs();
                 }
+                
+                getLogger().info("Deleted and recreated structure for world folder: " + worldName);
             }
-            getLogger().info("World folders cleaned successfully.");
-        } else if (totalSize > 500L * 1024L * 1024L) {
-            getLogger().warning("World folders exceed 500MB (" + (totalSize / 1024 / 1024) + "MB). Skipping background deletion.");
         }
-    }
-
-    private long getFolderSize(File folder) {
-        try (Stream<Path> stream = Files.walk(folder.toPath())) {
-            return stream.filter(p -> p.toFile().isFile())
-                    .mapToLong(p -> p.toFile().length())
-                    .sum();
-        } catch (IOException e) {
-            return 0;
-        }
-    }
-
-    private void cleanFolder(File folder) {
-        File[] files = folder.listFiles();
-        if (files == null) return;
-        for (File file : files) {
-            deleteFileRecursively(file);
-        }
-    }
-
-    private void ensureSubdirectories(File worldFolder) {
-        String[] subs = {"playerdata", "stats", "advancements", "poi"};
-        for (String sub : subs) {
-            File f = new File(worldFolder, sub);
-            if (!f.exists()) f.mkdirs();
-        }
+        getLogger().info("World folders completely reset successfully.");
     }
 
     private void deleteFileRecursively(File file) {
@@ -124,13 +97,21 @@ public final class NotTheServersFault extends JavaPlugin {
         this.goalManager = new GoalManager(this, twistManager);
         this.structureDisappearManager = new StructureDisappearManager(this, twistManager);
         this.ambienceManager = new AmbienceManager(this, twistManager);
-        this.adminManager = new AdminManager(this);
         this.fakePlayerManager = new FakePlayerManager(this, twistManager);
 
-        Optional.ofNullable(getCommand("start")).ifPresent(cmd -> cmd.setExecutor(new StartCommand(lobbyManager, graceManager, twistManager)));
-        Optional.ofNullable(getCommand("ntsf")).ifPresent(cmd -> cmd.setExecutor(new xyz.vprolabs.nottheserversfault.command.AdminCommand(this, adminManager)));
+        StartCommand startCmd = new StartCommand(lobbyManager, graceManager, twistManager);
+        Optional.ofNullable(getCommand("start")).ifPresent(cmd -> {
+            cmd.setExecutor(startCmd);
+            cmd.setTabCompleter(startCmd);
+        });
 
-        var pm = getServer().getPluginManager();
+        AdminCommand adminCmd = new AdminCommand(this);
+        Optional.ofNullable(getCommand("ntsf")).ifPresent(cmd -> {
+            cmd.setExecutor(adminCmd);
+            cmd.setTabCompleter(adminCmd);
+        });
+
+        org.bukkit.plugin.PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new PlayerJoinListener(this, lobbyManager, twistManager), this);
         pm.registerEvents(new PlayerStateListener(this, lobbyManager, twistManager), this);
         pm.registerEvents(new ChatBlockListener(lobbyManager), this);
@@ -143,7 +124,7 @@ public final class NotTheServersFault extends JavaPlugin {
         pm.registerEvents(goalManager, this);
         pm.registerEvents(structureDisappearManager, this);
         pm.registerEvents(ambienceManager, this);
-        pm.registerEvents(adminManager, this);
+        pm.registerEvents(lobbyManager, this);
 
         if (twistManager.isActive() && !twistManager.isFinished()) {
             inventoryShuffleManager.start();

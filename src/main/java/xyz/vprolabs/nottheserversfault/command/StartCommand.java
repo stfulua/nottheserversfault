@@ -3,14 +3,18 @@ package xyz.vprolabs.nottheserversfault.command;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import xyz.vprolabs.nottheserversfault.manager.GraceManager;
 import xyz.vprolabs.nottheserversfault.manager.LobbyManager;
 import xyz.vprolabs.nottheserversfault.manager.TwistManager;
-import xyz.vprolabs.nottheserversfault.util.TargetUtil;
 
-public class StartCommand implements CommandExecutor {
+import java.util.Collections;
+import java.util.List;
+
+public class StartCommand implements CommandExecutor, TabCompleter {
 
     private final LobbyManager lobbyManager;
     private final GraceManager graceManager;
@@ -32,5 +36,10 @@ public class StartCommand implements CommandExecutor {
 
         lobbyManager.setReady(player);
         return true;
+    }
+
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+        return Collections.emptyList();
     }
 }

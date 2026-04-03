@@ -34,14 +34,13 @@ This plugin is built for **multiple players** to compete at once.
 
 1.  **Block Desync:** Common blocks like Stone or Dirt might "revert" instantly after being broken.
 2.  **Cursed Crafting:** 10% chance for crafts to fail and give you "trash" instead.
-3.  **The Secret Diamond Ore:** Diamond Ore gives Dirt. Diamonds are found by mining a random **Secret Ore** (Gold, Redstone, Lapis, or Emerald) that changes every time the server starts.
+3.  **The Secret Diamond Ore:** Diamond Ore gives Dirt. Diamonds are found by mining a random **Secret Ore** (Gold, Redstone, Lapis, Emerald, Iron, or Coal) that changes every time the server starts.
 4.  **Mob Ambush:** Mining the Secret Ore up close triggers scary sounds and an immediate ambush of Zombies, Skeletons, and Witches!
 5.  **Daylight Spawns:** Hostile mobs spawn near you during the day and are immune to sunlight.
 6.  **Ghost Players:** Realistic fake players join, chat, and leave to mess with your head.
 7.  **Inventory Shuffle:** Your inventory randomly shuffles every 5 minutes.
 8.  **Vanishing Structures:** Villages and structures disappear when you get too close.
 9.  **Sun Immunity:** Monsters are permanently protected from fire and sunlight.
-10. **Spectator Mode:** Replaced Vanish with a clean `/ntsf spectator` command for admins.
 
 </details>
 
@@ -49,7 +48,8 @@ This plugin is built for **multiple players** to compete at once.
 
 ### ⚙️ Setup
 - `/start`: Ready up in the lobby.
-- `/ntsf spectator`: Toggle spectator mode (Admins only).
+- `/ntsf reload`: Reload the configuration file.
+- `/ntsf spectator <add|remove> <player>`: Add or remove players from the spectator list (automatically updates config).
 - **Setup:** Drop the `.jar` into your plugins folder.
 
 ### 📝 Requirements

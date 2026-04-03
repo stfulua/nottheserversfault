@@ -10,6 +10,6 @@ commands:
     usage: /start
   ntsf:
     description: Admin commands
-    usage: /ntsf <vanish>
+    usage: /ntsf <reload|spectator>
     aliases: [nottheserversfault]
     permission: ntsf.admin

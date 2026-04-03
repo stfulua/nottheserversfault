@@ -6,6 +6,12 @@ import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -23,7 +29,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class LobbyManager {
+public class LobbyManager implements Listener {
 
     private final NotTheServersFault plugin;
     private final Map<UUID, BukkitTask> freezeTasks = new ConcurrentHashMap<>();
@@ -124,11 +130,10 @@ public class LobbyManager {
     private void updateUI(Player player) {
         String title = "§6§lWAITING FOR GAME";
         String subtitle;
-        String chunkyProgress = plugin.getChunkyManager().getProgressString();
         
-        if (chunkyProgress != null) {
+        if (plugin.getChunkyManager().isChunkyRunning()) {
             title = "§c§lLOADING TERRAIN...";
-            subtitle = "§fProgress: §e" + chunkyProgress;
+            subtitle = "§fPlease wait while the world generates!";
         } else if (plugin.getTwistManager().isExcluded(player.getName())) {
             subtitle = "§fYou are a §7Spectator §f- Waiting...";
         } else if (readyPlayers.contains(player.getUniqueId())) {
@@ -177,6 +182,12 @@ public class LobbyManager {
 
     public void checkStartCondition() {
         if (plugin.getTwistManager().isStarted()) return;
+        
+        // HARD BLOCK: Cannot start until Chunky is finished
+        if (plugin.getChunkyManager().isChunkyRunning()) {
+            return; 
+        }
+
         long targetCount = Bukkit.getOnlinePlayers().stream().filter(TargetUtil::isTarget).count();
         if (targetCount == 0) return;
         boolean allReady = Bukkit.getOnlinePlayers().stream()
@@ -219,9 +230,22 @@ public class LobbyManager {
         BukkitTask task = freezeTasks.remove(uuid);
         if (task != null) task.cancel();
         if (player.isOnline()) {
-            player.teleport(player.getWorld().getSpawnLocation());
+            player.teleport(getSafeRandomSpawn(player.getWorld()));
             player.resetTitle();
         }
+    }
+
+    private Location getSafeRandomSpawn(World world) {
+        for (int i = 0; i < 50; i++) {
+            int x = java.util.concurrent.ThreadLocalRandom.current().nextInt(-50, 51);
+            int z = java.util.concurrent.ThreadLocalRandom.current().nextInt(-50, 51);
+            org.bukkit.block.Block highest = world.getHighestBlockAt(x, z);
+            Material type = highest.getType();
+            if (type.isSolid() && type != Material.MAGMA_BLOCK && type != Material.CACTUS) {
+                return highest.getLocation().add(0.5, 1, 0.5);
+            }
+        }
+        return world.getHighestBlockAt(0, 0).getLocation().add(0.5, 1, 0.5);
     }
 
     public void shutdown() {
@@ -232,4 +256,22 @@ public class LobbyManager {
 
     public Location getLobbyLocation() { return lobbyLoc.clone(); }
     public boolean isInLobby(@NotNull Player player) { return freezeTasks.containsKey(player.getUniqueId()); }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onDamage(EntityDamageEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            if (isInLobby(player)) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPvP(EntityDamageByEntityEvent event) {
+        if (event.getEntity() instanceof Player victim && event.getDamager() instanceof Player attacker) {
+            if (isInLobby(victim) || isInLobby(attacker)) {
+                event.setCancelled(true);
+            }
+        }
+    }
 }

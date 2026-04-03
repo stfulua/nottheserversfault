@@ -91,10 +91,13 @@ public class GoalManager implements Listener {
         twistManager.deactivate();
         twistManager.setFinished(true);
         
-        String title = "§a§lCHALLENGE COMPLETE!";
-        String subtitle = "§e" + player.getName() + " §fgot the Diamond Block!";
+        long timeTakenMs = System.currentTimeMillis() - twistManager.getStartTime();
+        String formattedTime = formatTime(timeTakenMs);
         
-        Bukkit.broadcastMessage("§a§lCHALLENGE COMPLETE! §e" + player.getName() + " §fhas won the challenge!");
+        String title = "§a§lCHALLENGE COMPLETE!";
+        String subtitle = "§e" + player.getName() + " §fwon in §b" + formattedTime;
+        
+        Bukkit.broadcastMessage("§a§lCHALLENGE COMPLETE! §e" + player.getName() + " §fhas won the challenge in §b" + formattedTime + "§f!");
         
         Bukkit.getOnlinePlayers().forEach(p -> {
             p.sendTitle(title, subtitle, 10, 70, 20);
@@ -103,5 +106,29 @@ public class GoalManager implements Listener {
         
         plugin.getInventoryShuffleManager().stop();
         plugin.getFakePlayerManager().stop();
+
+        // Handle Automatic Reset
+        if (twistManager.isResetEnabled()) {
+            int delayMinutes = twistManager.getResetDelayMinutes();
+            Bukkit.broadcastMessage("§c§lThe server will automatically reset in " + delayMinutes + " minutes.");
+            
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                Bukkit.broadcastMessage("§c§lAUTOMATIC RESET STARTING...");
+                Bukkit.getOnlinePlayers().forEach(p -> p.kickPlayer("§cServer is resetting for a new game!\n§7Please wait a moment."));
+                Bukkit.getScheduler().runTaskLater(plugin, Bukkit::shutdown, 10L);
+            }, delayMinutes * 1200L);
+        }
+    }
+
+    private String formatTime(long ms) {
+        long seconds = (ms / 1000) % 60;
+        long minutes = (ms / (1000 * 60)) % 60;
+        long hours = (ms / (1000 * 60 * 60));
+        
+        if (hours > 0) {
+            return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        } else {
+            return String.format("%02d:%02d", minutes, seconds);
+        }
     }
 }

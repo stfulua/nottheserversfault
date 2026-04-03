@@ -62,6 +62,9 @@ public class PlayerStateListener implements Listener {
     public void onGameModeChange(PlayerGameModeChangeEvent event) {
         Player player = event.getPlayer();
         if (!TargetUtil.isTarget(player)) return;
+        
+        // Allow OPs and excluded players to change gamemode freely
+        if (player.isOp() || twistManager.isExcluded(player.getName())) return;
 
         if (twistManager.isStarted() && !twistManager.isFinished()) {
             if (event.getNewGameMode() != GameMode.SURVIVAL) {

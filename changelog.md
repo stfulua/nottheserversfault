@@ -1,8 +1,8 @@
 ### [1.1.0] - The Polished Chaos Update
-- **Secret Diamond Ore**: Randomly selects an ore (Gold, Redstone, Lapis, or Emerald) on server start to drop diamonds.
+- **Secret Diamond Ore**: Randomly selects an ore (Gold, Redstone, Lapis, Emerald, Iron, or Coal) with equal chance on server start to drop diamonds.
 - **Mob Ambush System**: Mining the Secret Ore up close triggers scary sounds and a mob ambush (Zombies, Skeletons, Witches).
 - **Lobby Security**: Added full invincibility and disabled PvP in the lobby area.
-- **Spectator Mode**: Replaced Vanish with a clean `/ntsf spectator` command for admins.
+- **Admin Commands**: Added `/ntsf spectator <add|remove> <player>` to manage the spectator list and `/ntsf reload` to reload the config.
 - **Fake Player Polish**: Full sequence (Join -> Message -> Leave) with a 3-8 minute cooldown.
 - **Improved Spawning**: Ambush mobs now spawn within ±10 Y-levels to ensure they appear in the same cave system.
 - **Dynamic Terrain Detection**: The lobby now properly detects when Chunky is generating terrain and blocks game start.

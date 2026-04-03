@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "xyz.vprolabs.nottheserversfault"
-version = "1.0.0"
+version = "1.1.0"
 
 java {
     toolchain {
@@ -33,7 +33,7 @@ dependencies {
 
 tasks {
     shadowJar {
-        archiveFileName.set("NotTheServersFault-1.0.0.jar")
+        archiveFileName.set("NotTheServersFault-1.1.0.jar")
         
         minimize()
         

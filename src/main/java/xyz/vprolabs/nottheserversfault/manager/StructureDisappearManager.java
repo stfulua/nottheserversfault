@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,11 +15,12 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 import xyz.vprolabs.nottheserversfault.NotTheServersFault;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class StructureDisappearManager implements Listener {
 
@@ -33,22 +35,16 @@ public class StructureDisappearManager implements Listener {
     static {
         for (Material mat : Material.values()) {
             String name = mat.name();
-            // Wood types
+            // Broad building material list
             if (name.contains("LOG") || name.contains("WOOD") || name.contains("PLANKS") || 
                 name.contains("STAIRS") || name.contains("SLAB") || name.contains("FENCE") || 
                 name.contains("DOOR") || name.contains("TRAPDOOR") || name.contains("PRESSURE_PLATE") || 
-                name.contains("BUTTON") || name.contains("SIGN") || name.contains("HANGING_SIGN")) {
-                BUILDING_MATERIALS.add(mat);
-            }
-            // Stone/Brick types
-            if (name.contains("COBBLESTONE") || name.contains("STONE_BRICK") || name.contains("BRICKS") || 
+                name.contains("BUTTON") || name.contains("SIGN") || name.contains("HANGING_SIGN") ||
+                name.contains("COBBLESTONE") || name.contains("STONE_BRICK") || name.contains("BRICKS") || 
                 name.contains("TERRACOTTA") || name.contains("CONCRETE") || name.contains("WOOL") || 
                 name.contains("CARPET") || name.contains("GLASS") || name.contains("LANTERN") || 
-                name.contains("WALL") || name.contains("CHISELED") || name.contains("POLISHED")) {
-                BUILDING_MATERIALS.add(mat);
-            }
-            // Utility/Furniture
-            if (name.equals("CHEST") || name.equals("FURNACE") || name.equals("CRAFTING_TABLE") || 
+                name.contains("WALL") || name.contains("CHISELED") || name.contains("POLISHED") ||
+                name.equals("CHEST") || name.equals("FURNACE") || name.equals("CRAFTING_TABLE") || 
                 name.equals("TORCH") || name.equals("WALL_TORCH") || name.equals("BELL") || 
                 name.equals("BARREL") || name.equals("SMOKER") || name.equals("BLAST_FURNACE") || 
                 name.contains("TABLE") || name.contains("GRINDSTONE") || name.equals("LECTERN") || 
@@ -58,7 +54,6 @@ public class StructureDisappearManager implements Listener {
                 BUILDING_MATERIALS.add(mat);
             }
         }
-        // Exclude specific terrain materials that might be caught by broad filters
         BUILDING_MATERIALS.remove(Material.STONE);
         BUILDING_MATERIALS.remove(Material.DIRT);
         BUILDING_MATERIALS.remove(Material.GRASS_BLOCK);
@@ -66,6 +61,9 @@ public class StructureDisappearManager implements Listener {
         BUILDING_MATERIALS.remove(Material.GRAVEL);
         BUILDING_MATERIALS.remove(Material.WATER);
         BUILDING_MATERIALS.remove(Material.LAVA);
+        BUILDING_MATERIALS.remove(Material.AIR);
+        BUILDING_MATERIALS.remove(Material.CAVE_AIR);
+        BUILDING_MATERIALS.remove(Material.VOID_AIR);
     }
 
     public StructureDisappearManager(NotTheServersFault plugin, TwistManager twistManager) {
@@ -76,7 +74,6 @@ public class StructureDisappearManager implements Listener {
     public void start() {
         if (checkTask != null) return;
         
-        // Scan already loaded chunks
         for (Chunk chunk : Bukkit.getWorlds().get(0).getLoadedChunks()) {
             scanChunk(chunk);
         }
@@ -89,8 +86,9 @@ public class StructureDisappearManager implements Listener {
                 for (BoundingBox box : structures) {
                     if (removedStructures.contains(box)) continue;
                     
-                    if (box.clone().expand(5.0).contains(playerLoc.toVector())) {
-                        removeStructureEfficiently(box);
+                    // Trigger distance: 50-100 blocks.
+                    if (box.clone().expand(100.0).contains(playerLoc.toVector())) {
+                        removeStructureAsync(box);
                         removedStructures.add(box);
                     }
                 }
@@ -114,59 +112,62 @@ public class StructureDisappearManager implements Listener {
     }
 
     private void scanChunk(Chunk chunk) {
+        // Broadly capture all structures
         Collection<GeneratedStructure> chunkStructures = chunk.getStructures();
         for (GeneratedStructure structure : chunkStructures) {
-            structures.add(structure.getBoundingBox());
+            String typeName = structure.getStructure().getKey().getKey().toLowerCase();
+            if (typeName.contains("village") || typeName.contains("outpost") || typeName.contains("mansion") || typeName.contains("temple")) {
+                structures.add(structure.getBoundingBox());
+            }
         }
     }
 
-    private void removeStructureEfficiently(BoundingBox box) {
-        int minX = (int) box.getMinX();
-        int minY = (int) box.getMinY();
-        int minZ = (int) box.getMinZ();
-        int maxX = (int) box.getMaxX();
-        int maxY = (int) box.getMaxY();
-        int maxZ = (int) box.getMaxZ();
+    private void removeStructureAsync(BoundingBox box) {
+        World world = plugin.getServer().getWorlds().get(0);
         
-        org.bukkit.World world = plugin.getServer().getWorlds().get(0);
-        int blocksPerTick = 500; // Efficient batch size
+        // Calculate chunk ranges
+        int minChunkX = ((int) box.getMinX()) >> 4;
+        int maxChunkX = ((int) box.getMaxX()) >> 4;
+        int minChunkZ = ((int) box.getMinZ()) >> 4;
+        int maxChunkZ = ((int) box.getMaxZ()) >> 4;
 
-        removeInBatches(world, minX, minY, minZ, maxX, maxY, maxZ, blocksPerTick);
+        List<Chunk> affectedChunks = new ArrayList<>();
+        for (int cx = minChunkX; cx <= maxChunkX; cx++) {
+            for (int cz = minChunkZ; cz <= maxChunkZ; cz++) {
+                if (world.isChunkLoaded(cx, cz)) {
+                    affectedChunks.add(world.getChunkAt(cx, cz));
+                }
+            }
+        }
+
+        // Processing 4 chunks per tick for ULTRA speed
+        plugin.getServer().getScheduler().runTaskTimer(plugin, task -> {
+            if (affectedChunks.isEmpty()) {
+                task.cancel();
+                return;
+            }
+
+            int chunksThisTick = Math.min(affectedChunks.size(), 4);
+            for (int i = 0; i < chunksThisTick; i++) {
+                Chunk chunk = affectedChunks.remove(0);
+                clearBuildingMaterialsInChunk(chunk, box);
+            }
+        }, 0L, 1L);
     }
 
-    private void removeInBatches(org.bukkit.World world, int minX, int minY, int minZ, int maxX, int maxY, int maxZ, int batchSize) {
-        AtomicInteger currentX = new AtomicInteger(minX);
-        AtomicInteger currentY = new AtomicInteger(minY);
-        AtomicInteger currentZ = new AtomicInteger(minZ);
+    private void clearBuildingMaterialsInChunk(Chunk chunk, BoundingBox structureBox) {
+        int minY = (int) structureBox.getMinY();
+        int maxY = (int) structureBox.getMaxY();
 
-        plugin.getServer().getScheduler().runTaskTimer(plugin, task -> {
-            int count = 0;
-            while (count < batchSize) {
-                int x = currentX.get();
-                int y = currentY.get();
-                int z = currentZ.get();
-
-                Block block = world.getBlockAt(x, y, z);
-                Material type = block.getType();
-                
-                if (BUILDING_MATERIALS.contains(type)) {
-                    block.setType(Material.AIR, false);
-                }
-
-                count++;
-                
-                // Advance coordinates
-                if (currentZ.incrementAndGet() > maxZ) {
-                    currentZ.set(minZ);
-                    if (currentY.incrementAndGet() > maxY) {
-                        currentY.set(minY);
-                        if (currentX.incrementAndGet() > maxX) {
-                            task.cancel();
-                            return;
-                        }
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                for (int y = minY; y <= maxY; y++) {
+                    Block block = chunk.getBlock(x, y, z);
+                    if (BUILDING_MATERIALS.contains(block.getType())) {
+                        block.setType(Material.AIR, false);
                     }
                 }
             }
-        }, 0L, 1L);
+        }
     }
 }

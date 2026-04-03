@@ -51,8 +51,8 @@ public final class FakePlayerManager {
         "I shouldn't have come here."
     );
 
-    private final Map<UUID, Set<UUID>> activeFakePlayers = new HashMap<>();
-    private final Map<UUID, String> lastFakeName = new HashMap<>();
+    private final Set<UUID> playersInSequence = new HashSet<>();
+    private final Map<UUID, Long> nextEventTime = new HashMap<>();
 
     public FakePlayerManager(NotTheServersFault plugin, TwistManager twistManager) {
         this.plugin = plugin;
@@ -63,14 +63,17 @@ public final class FakePlayerManager {
         if (mainTask != null) return;
         mainTask = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
             if (!twistManager.isActive()) return;
+            long now = System.currentTimeMillis();
             for (Player target : Bukkit.getOnlinePlayers()) {
                 if (!TargetUtil.isTarget(target)) continue;
-                if (target.getPing() > 300) continue;
-                if (ThreadLocalRandom.current().nextInt(100) < 25) {
-                    triggerFakePlayerEvent(target);
+                if (playersInSequence.contains(target.getUniqueId())) continue;
+                
+                long next = nextEventTime.getOrDefault(target.getUniqueId(), 0L);
+                if (now >= next) {
+                    triggerFakePlayerSequence(target);
                 }
             }
-        }, 1200L, 1200L);
+        }, 100L, 100L); // Check every 5 seconds
     }
 
     public void stop() {
@@ -78,47 +81,49 @@ public final class FakePlayerManager {
             mainTask.cancel();
             mainTask = null;
         }
-        activeFakePlayers.forEach((targetId, fakeIds) -> {
-            Player target = plugin.getServer().getPlayer(targetId);
-            if (target != null && target.isOnline()) {
-                for (UUID fakeId : fakeIds) {
-                    removeFakeFromTab(target, fakeId);
-                }
-            }
-        });
-        activeFakePlayers.clear();
-        lastFakeName.clear();
+        playersInSequence.clear();
+        nextEventTime.clear();
     }
 
-    private void triggerFakePlayerEvent(Player target) {
-        if (lastFakeName.containsKey(target.getUniqueId())) {
-            String last = lastFakeName.get(target.getUniqueId());
-            target.sendMessage("§e" + last + " left the game");
-        }
-
+    private void triggerFakePlayerSequence(Player target) {
+        playersInSequence.add(target.getUniqueId());
+        
         String name = fakeNames.get(ThreadLocalRandom.current().nextInt(fakeNames.size()));
         UUID fakeUuid = UUID.randomUUID();
-        lastFakeName.put(target.getUniqueId(), name);
         
+        // 1. Join
         addFakeToTab(target, name, fakeUuid);
-        activeFakePlayers.computeIfAbsent(target.getUniqueId(), k -> new HashSet<>()).add(fakeUuid);
-        
         target.sendMessage("§e" + name + " joined the game");
 
-        int messageDelay = ThreadLocalRandom.current().nextInt(200, 600);
+        // 2. Wait random seconds (3-10s) -> Message
+        int messageDelay = ThreadLocalRandom.current().nextInt(60, 200);
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            if (!target.isOnline() || !activeFakePlayers.containsKey(target.getUniqueId())) return;
-            if (!activeFakePlayers.get(target.getUniqueId()).contains(fakeUuid)) return;
+            if (!target.isOnline()) {
+                endSequence(target);
+                return;
+            }
             
             String msg = messages.get(ThreadLocalRandom.current().nextInt(messages.size()));
             target.sendMessage("§f<" + name + "> " + msg);
             
+            // 3. Wait random seconds (5-15s) -> Leave Message
+            int leaveDelay = ThreadLocalRandom.current().nextInt(100, 300);
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                removeFakeFromTab(target, fakeUuid);
-                Set<UUID> fakes = activeFakePlayers.get(target.getUniqueId());
-                if (fakes != null) fakes.remove(fakeUuid);
-            }, 200L + ThreadLocalRandom.current().nextInt(100));
+                if (target.isOnline()) {
+                    target.sendMessage("§e" + name + " left the game");
+                    removeFakeFromTab(target, fakeUuid);
+                }
+                
+                // 4. Cooldown (3-8 minutes)
+                int cooldownMinutes = ThreadLocalRandom.current().nextInt(3, 9);
+                nextEventTime.put(target.getUniqueId(), System.currentTimeMillis() + (cooldownMinutes * 60000L));
+                endSequence(target);
+            }, leaveDelay);
         }, messageDelay);
+    }
+
+    private void endSequence(Player target) {
+        playersInSequence.remove(target.getUniqueId());
     }
 
     private void addFakeToTab(Player target, String name, UUID uuid) {

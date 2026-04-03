@@ -47,6 +47,19 @@ public final class AmbienceManager implements Listener {
         }, 2400L, 2400L); 
     }
 
+    public void playScarySound(Player target) {
+        Sound[] creepy = {
+            Sound.ENTITY_CREEPER_PRIMED, 
+            Sound.ENTITY_ENDERMAN_STARE,
+            Sound.ENTITY_ZOMBIE_AMBIENT,
+            Sound.ENTITY_PHANTOM_SWOOP,
+            Sound.ENTITY_GHAST_SCREAM,
+            Sound.ENTITY_WOLF_GROWL
+        };
+        Sound sound = creepy[ThreadLocalRandom.current().nextInt(creepy.length)];
+        target.playSound(target.getLocation(), sound, 1.0f, 0.5f);
+    }
+
     private void triggerHaunt(Player target) {
         int type = ThreadLocalRandom.current().nextInt(3);
         switch (type) {
