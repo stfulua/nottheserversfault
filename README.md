@@ -64,6 +64,18 @@ This plugin is built for **multiple players** to compete at once.
 - **Discord:** [Join for Support & Bug Reports](https://discord.gg/SNzUYWbc5Q)
 - **Donation:** [Support the project on Ko-fi](https://ko-fi.com/v4bi)
 
+### 📄 License
+
+This project is licensed under the **vProLabs General License**.
+
+- **Non-Commercial Use**: Free for personal and non-commercial use
+- **Attribution Required**: Credit vProLabs and link to the original project
+- **Share Alike**: Derivative works must use the same license
+- **No Competing Works**: Derivatives cannot compete with or disparage the original
+- **Commercial Licensing**: Contact vProLabs for commercial use rights
+
+See [LICENSE](LICENSE) for full terms.
+
 <div align="center">
   <sub>Built with ❤️ by vProLabs</sub>
 </div>
